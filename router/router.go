@@ -82,5 +82,25 @@ func SetupRouter() *gin.Engine {
 			"room":     roomNum,
 		})
 	})
+
+	r.GET("/profile", func(c *gin.Context) {
+		token := c.Query("token")
+		if token == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "缺少参数: token 不能为空"})
+			return
+		}
+
+		profile, err := campus.GetUserProfile(token)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "获取用户信息失败: " + err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"profile": profile,
+			"avatar":  profile.Avatar(),
+		})
+	})
+
 	return r
 }
