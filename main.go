@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	config.InitConfig()
 	config.InitDB()
 
 	r := router.SetupRouter()
