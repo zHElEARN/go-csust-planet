@@ -20,5 +20,7 @@ func SetupRouter() *gin.Engine {
 		authGroup.POST("/login", controller.Login)
 	}
 
+	r.NoRoute(controller.HandleNotFound)
+
 	return r
 }
