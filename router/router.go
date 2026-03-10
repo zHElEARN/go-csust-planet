@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zHElEARN/go-csust-planet/campus"
+	"github.com/zHElEARN/go-csust-planet/utils"
 )
 
 var (
@@ -32,23 +32,23 @@ func SetupRouter() *gin.Engine {
 			return
 		}
 
-		var targetCampus campus.Campus
+		var targetCampus utils.Campus
 		switch campusName {
 		case "云塘":
-			targetCampus = campus.CampusYuntang
+			targetCampus = utils.CampusYuntang
 		case "金盆岭":
-			targetCampus = campus.CampusJinpenling
+			targetCampus = utils.CampusJinpenling
 		default:
 			c.JSON(http.StatusBadRequest, gin.H{"error": "无效的校区名称"})
 			return
 		}
 
-		var buildings []campus.Building
+		var buildings []utils.Building
 		if val, ok := buildingsCache.Load(targetCampus.ID); ok {
-			buildings = val.([]campus.Building)
+			buildings = val.([]utils.Building)
 		} else {
 			var err error
-			buildings, err = campus.GetBuildings(targetCampus)
+			buildings, err = utils.GetBuildings(targetCampus)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "获取楼栋列表失败: " + err.Error()})
 				return
@@ -56,7 +56,7 @@ func SetupRouter() *gin.Engine {
 			buildingsCache.Store(targetCampus.ID, buildings)
 		}
 
-		var targetBuilding *campus.Building
+		var targetBuilding *utils.Building
 		for _, b := range buildings {
 			if b.Name == buildingName {
 				targetBuilding = &b
@@ -69,7 +69,7 @@ func SetupRouter() *gin.Engine {
 			return
 		}
 
-		balance, err := campus.GetElectricity(*targetBuilding, roomNum)
+		balance, err := utils.GetElectricity(*targetBuilding, roomNum)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "查询电费失败: " + err.Error()})
 			return
@@ -90,7 +90,7 @@ func SetupRouter() *gin.Engine {
 			return
 		}
 
-		profile, err := campus.GetUserProfile(token)
+		profile, err := utils.GetUserProfile(token)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "获取用户信息失败: " + err.Error()})
 			return

@@ -1,4 +1,4 @@
-package campus
+package utils
 
 import (
 	"encoding/json"
