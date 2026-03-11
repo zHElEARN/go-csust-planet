@@ -16,10 +16,10 @@ import (
 )
 
 type electricityTaskOption struct {
-	NotifyTime string `json:"NotifyTime" binding:"required"`
-	Campus     string `json:"Campus" binding:"required"`
-	Building   string `json:"Building" binding:"required"`
-	Room       string `json:"Room" binding:"required"`
+	NotifyTime string `json:"notifyTime" binding:"required"`
+	Campus     string `json:"campus" binding:"required"`
+	Building   string `json:"building" binding:"required"`
+	Room       string `json:"room" binding:"required"`
 }
 
 type syncElectricityTaskRequest struct {

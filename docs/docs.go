@@ -311,22 +311,22 @@ const docTemplate = `{
         "controller.electricityTaskOption": {
             "type": "object",
             "required": [
-                "Building",
-                "Campus",
-                "NotifyTime",
-                "Room"
+                "building",
+                "campus",
+                "notifyTime",
+                "room"
             ],
             "properties": {
-                "Building": {
+                "building": {
                     "type": "string"
                 },
-                "Campus": {
+                "campus": {
                     "type": "string"
                 },
-                "NotifyTime": {
+                "notifyTime": {
                     "type": "string"
                 },
-                "Room": {
+                "room": {
                     "type": "string"
                 }
             }
@@ -346,14 +346,14 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "body",
-                "device_token",
+                "deviceToken",
                 "title"
             ],
             "properties": {
                 "body": {
                     "type": "string"
                 },
-                "device_token": {
+                "deviceToken": {
                     "type": "string"
                 },
                 "title": {

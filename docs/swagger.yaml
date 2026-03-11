@@ -2,19 +2,19 @@ basePath: /
 definitions:
   controller.electricityTaskOption:
     properties:
-      Building:
+      building:
         type: string
-      Campus:
+      campus:
         type: string
-      NotifyTime:
+      notifyTime:
         type: string
-      Room:
+      room:
         type: string
     required:
-    - Building
-    - Campus
-    - NotifyTime
-    - Room
+    - building
+    - campus
+    - notifyTime
+    - room
     type: object
   controller.loginRequest:
     properties:
@@ -27,13 +27,13 @@ definitions:
     properties:
       body:
         type: string
-      device_token:
+      deviceToken:
         type: string
       title:
         type: string
     required:
     - body
-    - device_token
+    - deviceToken
     - title
     type: object
   controller.syncElectricityTaskRequest:

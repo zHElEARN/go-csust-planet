@@ -18,7 +18,7 @@ var (
 )
 
 type pushRequest struct {
-	DeviceToken string `json:"device_token" binding:"required"`
+	DeviceToken string `json:"deviceToken" binding:"required"`
 	Title       string `json:"title" binding:"required"`
 	Body        string `json:"body" binding:"required"`
 }
