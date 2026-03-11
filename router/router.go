@@ -13,6 +13,7 @@ import (
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
+	// 仅开发模式下启用
 	if config.AppConfig.AppMode != "production" {
 		utilGroup := r.Group("/util")
 		utilGroup.Use(middleware.AuthMiddleware())

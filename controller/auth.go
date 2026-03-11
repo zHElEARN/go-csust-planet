@@ -44,7 +44,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// 数据库操作：查找或创建用户
+	// 查找或创建用户
 	var user model.User
 	result := config.DB.Where("student_id = ?", profile.UserAccount).First(&user)
 	if result.Error != nil {

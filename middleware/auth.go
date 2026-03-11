@@ -18,7 +18,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 按空格分割，通常是 "Bearer <token>"
 		parts := strings.SplitN(authHeader, " ", 2)
 		if !(len(parts) == 2 && parts[0] == "Bearer") {
 			utils.ResponseError(c, http.StatusUnauthorized, "身份验证令牌格式不正确")
@@ -34,7 +33,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 将 userID 存储在上下文中，供后续处理程序使用
+		// 将 userID 存储在上下文中
 		c.Set("userID", claims.Subject)
 		c.Next()
 	}
