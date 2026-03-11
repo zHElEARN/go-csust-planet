@@ -6,12 +6,14 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/zHElEARN/go-csust-planet/controller"
 	_ "github.com/zHElEARN/go-csust-planet/docs"
+	"github.com/zHElEARN/go-csust-planet/middleware"
 )
 
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
 	utilGroup := r.Group("/util")
+	utilGroup.Use(middleware.AuthMiddleware())
 	{
 		utilGroup.GET("/hello", controller.Hello)
 		utilGroup.GET("/electricity", controller.Electricity)
