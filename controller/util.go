@@ -125,6 +125,5 @@ func Profile(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"profile": profile,
-		"avatar":  profile.Avatar(),
 	})
 }

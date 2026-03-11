@@ -18,10 +18,11 @@ type Profile struct {
 	DeptName          string  `json:"deptName"`          // 学院名称
 	DefaultUserAvatar string  `json:"defaultUserAvatar"` // 默认头像链接
 	HeadImageIcon     *string `json:"headImageIcon"`     // 用户设置的头像链接
+	Avatar            string  `json:"avatar"`            // 最终头像链接
 }
 
-// Avatar 获取头像链接
-func (p *Profile) Avatar() string {
+// getAvatarURL 获取头像链接
+func (p *Profile) getAvatarURL() string {
 	if p.HeadImageIcon != nil && *p.HeadImageIcon != "" {
 		return *p.HeadImageIcon
 	}
@@ -67,5 +68,6 @@ func GetUserProfile(token string) (*Profile, error) {
 		return nil, fmt.Errorf("Token 无效或数据为空，错误码: %s，错误信息: %s", ssoResp.ErrCode, ssoResp.ErrMsg)
 	}
 
+	ssoResp.Data.Avatar = ssoResp.Data.getAvatarURL()
 	return ssoResp.Data, nil
 }
