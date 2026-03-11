@@ -1,0 +1,145 @@
+basePath: /
+definitions:
+  controller.loginRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: go-csust-planet 项目的 API 接口文档
+  title: go-csust-planet API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 使用Token进行登录，如果用户不存在则自动注册。登录成功后返回含有JWT的凭证信息。
+      parameters:
+      - description: 登录请求，需包含获取的token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 用户登录
+      tags:
+      - auth
+  /util/electricity:
+    get:
+      description: 根据校区、楼栋和房间号查询对应的电费余额
+      parameters:
+      - description: '校区名称 (例如: 云塘, 金盆岭)'
+        in: query
+        name: campus
+        required: true
+        type: string
+      - description: 楼栋名称
+        in: query
+        name: building
+        required: true
+        type: string
+      - description: 房间号
+        in: query
+        name: room
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 查询电费余额
+      tags:
+      - util
+  /util/hello:
+    get:
+      description: 返回一个简单的hello world消息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Hello World测试
+      tags:
+      - util
+  /util/profile:
+    get:
+      description: 使用提供的token获取用户档案信息
+      parameters:
+      - description: 用户Token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取用户个人信息
+      tags:
+      - util
+swagger: "2.0"
