@@ -7,6 +7,19 @@ definitions:
     required:
     - token
     type: object
+  controller.pushRequest:
+    properties:
+      body:
+        type: string
+      device_token:
+        type: string
+      title:
+        type: string
+    required:
+    - body
+    - device_token
+    - title
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -140,6 +153,39 @@ paths:
             additionalProperties: true
             type: object
       summary: 获取用户个人信息
+      tags:
+      - util
+  /util/push:
+    post:
+      consumes:
+      - application/json
+      description: 使用提供的设备Token发送推送通知
+      parameters:
+      - description: 推送请求内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.pushRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 发送APNS推送消息
       tags:
       - util
 swagger: "2.0"

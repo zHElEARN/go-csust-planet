@@ -18,6 +18,7 @@ func SetupRouter() *gin.Engine {
 		utilGroup.GET("/hello", controller.Hello)
 		utilGroup.GET("/electricity", controller.Electricity)
 		utilGroup.GET("/profile", controller.Profile)
+		utilGroup.POST("/push", controller.Push)
 	}
 
 	authGroup := r.Group("/auth")

@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/sideshow/apns2"
 	"github.com/sideshow/apns2/payload"
@@ -31,19 +32,84 @@ func InitAPNS() {
 	}
 }
 
-func SendPushNotification(deviceToken string, title string, body string) error {
+type PushNotification struct {
+	DeviceToken       string         `json:"device_token"`
+	Title             string         `json:"title"`
+	Subtitle          string         `json:"subtitle"`
+	Body              string         `json:"body"`
+	Badge             *int           `json:"badge"`     // 使用指针以支持 0 值推送
+	Sound             string         `json:"sound"`     // 默认为 "default"
+	Category          string         `json:"category"`  // 用于分类通知
+	ThreadID          string         `json:"thread_id"` // 用于合并通知
+	MutableContent    bool           `json:"mutable_content"`
+	ContentAvailable  bool           `json:"content_available"`
+	InterruptionLevel string         `json:"interruption_level"` // active, passive, time-sensitive, critical
+	Priority          int            `json:"priority"`           // 10 (立即) 或 5 (省电)
+	Expiration        int64          `json:"expiration"`         // 过期统一失效时间，0 为永不过期
+	CustomData        map[string]any `json:"custom_data"`
+}
+
+func SendPushNotification(notification PushNotification) error {
 	if apnsClient == nil {
 		return fmt.Errorf("APNS 客户端未初始化")
 	}
 
-	p := payload.NewPayload().AlertTitle(title).AlertBody(body).Badge(1).Sound("default")
+	p := payload.NewPayload().
+		AlertTitle(notification.Title).
+		AlertBody(notification.Body)
 
-	notification := &apns2.Notification{}
-	notification.DeviceToken = deviceToken
-	notification.Topic = config.AppConfig.APNSBundleID
-	notification.Payload = p
+	if notification.Subtitle != "" {
+		p.AlertSubtitle(notification.Subtitle)
+	}
 
-	res, err := apnsClient.Push(notification)
+	if notification.Badge != nil {
+		p.Badge(*notification.Badge)
+	}
+
+	if notification.Sound != "" {
+		p.Sound(notification.Sound)
+	} else {
+		p.Sound("default")
+	}
+
+	if notification.Category != "" {
+		p.Category(notification.Category)
+	}
+
+	if notification.ThreadID != "" {
+		p.ThreadID(notification.ThreadID)
+	}
+
+	if notification.MutableContent {
+		p.MutableContent()
+	}
+
+	if notification.ContentAvailable {
+		p.ContentAvailable()
+	}
+
+	if notification.InterruptionLevel != "" {
+		p.InterruptionLevel(payload.EInterruptionLevel(notification.InterruptionLevel))
+	}
+
+	for k, v := range notification.CustomData {
+		p.Custom(k, v)
+	}
+
+	apnsNotification := &apns2.Notification{}
+	apnsNotification.DeviceToken = notification.DeviceToken
+	apnsNotification.Topic = config.AppConfig.APNSBundleID
+	apnsNotification.Payload = p
+
+	if notification.Priority > 0 {
+		apnsNotification.Priority = notification.Priority
+	}
+
+	if notification.Expiration > 0 {
+		apnsNotification.Expiration = time.Unix(notification.Expiration, 0)
+	}
+
+	res, err := apnsClient.Push(apnsNotification)
 
 	if err != nil {
 		return err

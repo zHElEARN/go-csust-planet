@@ -13,6 +13,12 @@ var (
 	buildingsCache sync.Map
 )
 
+type pushRequest struct {
+	DeviceToken string `json:"device_token" binding:"required"`
+	Title       string `json:"title" binding:"required"`
+	Body        string `json:"body" binding:"required"`
+}
+
 // Hello godoc
 // @Summary      Hello World测试
 // @Description  返回一个简单的hello world消息
@@ -125,5 +131,39 @@ func Profile(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"profile": profile,
+	})
+}
+
+// Push godoc
+// @Summary      发送APNS推送消息
+// @Description  使用提供的设备Token发送推送通知
+// @Tags         util
+// @Accept       json
+// @Produce      json
+// @Param        request  body      pushRequest  true  "推送请求内容"
+// @Success      200      {object}  map[string]interface{}
+// @Failure      400      {object}  map[string]interface{}
+// @Failure      500      {object}  map[string]interface{}
+// @Router       /util/push [post]
+func Push(c *gin.Context) {
+	var req pushRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.ResponseError(c, http.StatusBadRequest, "无效请求参数: "+err.Error())
+		return
+	}
+
+	err := utils.SendPushNotification(utils.PushNotification{
+		DeviceToken: req.DeviceToken,
+		Title:       req.Title,
+		Body:        req.Body,
+	})
+	if err != nil {
+		utils.ResponseError(c, http.StatusInternalServerError, "推送发送失败: "+err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "推送发送成功",
 	})
 }
