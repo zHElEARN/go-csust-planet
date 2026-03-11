@@ -71,6 +71,60 @@ const docTemplate = `{
                 }
             }
         },
+        "/task/electricity": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "添加一个新的电费定时推送任务",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "task"
+                ],
+                "summary": "添加电费推送任务",
+                "parameters": [
+                    {
+                        "description": "任务请求内容",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.AddTaskRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/util/electricity": {
             "get": {
                 "description": "根据校区、楼栋和房间号查询对应的电费余额",
@@ -254,6 +308,33 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "controller.AddTaskRequest": {
+            "type": "object",
+            "required": [
+                "building",
+                "campus",
+                "device_token",
+                "notify_time",
+                "room"
+            ],
+            "properties": {
+                "building": {
+                    "type": "string"
+                },
+                "campus": {
+                    "type": "string"
+                },
+                "device_token": {
+                    "type": "string"
+                },
+                "notify_time": {
+                    "type": "string"
+                },
+                "room": {
+                    "type": "string"
+                }
+            }
+        },
         "controller.loginRequest": {
             "type": "object",
             "required": [

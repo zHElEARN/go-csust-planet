@@ -26,6 +26,12 @@ func SetupRouter() *gin.Engine {
 		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
+	taskGroup := r.Group("/task")
+	taskGroup.Use(middleware.AuthMiddleware())
+	{
+		taskGroup.POST("/electricity", controller.AddElectricityTask)
+	}
+
 	authGroup := r.Group("/auth")
 	{
 		authGroup.POST("/login", controller.Login)

@@ -1,5 +1,24 @@
 basePath: /
 definitions:
+  controller.AddTaskRequest:
+    properties:
+      building:
+        type: string
+      campus:
+        type: string
+      device_token:
+        type: string
+      notify_time:
+        type: string
+      room:
+        type: string
+    required:
+    - building
+    - campus
+    - device_token
+    - notify_time
+    - room
+    type: object
   controller.loginRequest:
     properties:
       token:
@@ -65,6 +84,41 @@ paths:
       summary: 用户登录
       tags:
       - auth
+  /task/electricity:
+    post:
+      consumes:
+      - application/json
+      description: 添加一个新的电费定时推送任务
+      parameters:
+      - description: 任务请求内容
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.AddTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 添加电费推送任务
+      tags:
+      - task
   /util/electricity:
     get:
       description: 根据校区、楼栋和房间号查询对应的电费余额
