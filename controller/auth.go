@@ -32,7 +32,7 @@ type loginRequest struct {
 func Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的参数，请提供 token"})
+		utils.ResponseError(c, http.StatusBadRequest, "无效的参数，请提供 token")
 		return
 	}
 
@@ -40,7 +40,7 @@ func Login(c *gin.Context) {
 	profile, err := utils.GetUserProfile(req.Token)
 	if err != nil {
 		// 如果无法获取用户信息，通常是 token 无效
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "获取用户信息失败或 Token 已过期"})
+		utils.ResponseError(c, http.StatusUnauthorized, "获取用户信息失败或 Token 已过期")
 		return
 	}
 
@@ -54,11 +54,11 @@ func Login(c *gin.Context) {
 				StudentID: profile.UserAccount,
 			}
 			if err := config.DB.Create(&user).Error; err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "创建用户失败: " + err.Error()})
+				utils.ResponseError(c, http.StatusInternalServerError, "创建用户失败: "+err.Error())
 				return
 			}
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "数据库查询出错: " + result.Error.Error()})
+			utils.ResponseError(c, http.StatusInternalServerError, "数据库查询出错: "+result.Error.Error())
 			return
 		}
 	}
@@ -66,7 +66,7 @@ func Login(c *gin.Context) {
 	// 生成 JWT
 	jwtToken, err := utils.GenerateToken(user.ID, 30*24*time.Hour)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "生成令牌失败: " + err.Error()})
+		utils.ResponseError(c, http.StatusInternalServerError, "生成令牌失败: "+err.Error())
 		return
 	}
 

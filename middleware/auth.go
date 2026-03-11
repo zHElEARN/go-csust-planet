@@ -13,7 +13,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "未提供身份验证令牌"})
+			utils.ResponseError(c, http.StatusUnauthorized, "未提供身份验证令牌")
 			c.Abort()
 			return
 		}
@@ -21,7 +21,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// 按空格分割，通常是 "Bearer <token>"
 		parts := strings.SplitN(authHeader, " ", 2)
 		if !(len(parts) == 2 && parts[0] == "Bearer") {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "身份验证令牌格式不正确"})
+			utils.ResponseError(c, http.StatusUnauthorized, "身份验证令牌格式不正确")
 			c.Abort()
 			return
 		}
@@ -29,7 +29,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		tokenString := parts[1]
 		claims, err := utils.ParseToken(tokenString)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "无效或过期的令牌"})
+			utils.ResponseError(c, http.StatusUnauthorized, "无效或过期的令牌")
 			c.Abort()
 			return
 		}

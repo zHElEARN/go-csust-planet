@@ -45,7 +45,7 @@ func Electricity(c *gin.Context) {
 	roomNum := c.Query("room")
 
 	if campusName == "" || buildingName == "" || roomNum == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "缺少参数: campus, building, room 均为必填"})
+		utils.ResponseError(c, http.StatusBadRequest, "缺少参数: campus, building, room 均为必填")
 		return
 	}
 
@@ -56,7 +56,7 @@ func Electricity(c *gin.Context) {
 	case "金盆岭":
 		targetCampus = utils.CampusJinpenling
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的校区名称"})
+		utils.ResponseError(c, http.StatusBadRequest, "无效的校区名称")
 		return
 	}
 
@@ -67,7 +67,7 @@ func Electricity(c *gin.Context) {
 		var err error
 		buildings, err = utils.GetBuildings(targetCampus)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "获取楼栋列表失败: " + err.Error()})
+			utils.ResponseError(c, http.StatusInternalServerError, "获取楼栋列表失败: "+err.Error())
 			return
 		}
 		buildingsCache.Store(targetCampus.ID, buildings)
@@ -82,13 +82,13 @@ func Electricity(c *gin.Context) {
 	}
 
 	if targetBuilding == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("在%s未找到楼栋: %s", campusName, buildingName)})
+		utils.ResponseError(c, http.StatusNotFound, fmt.Sprintf("在%s未找到楼栋: %s", campusName, buildingName))
 		return
 	}
 
 	balance, err := utils.GetElectricity(*targetBuilding, roomNum)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "查询电费失败: " + err.Error()})
+		utils.ResponseError(c, http.StatusInternalServerError, "查询电费失败: "+err.Error())
 		return
 	}
 
@@ -113,13 +113,13 @@ func Electricity(c *gin.Context) {
 func Profile(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "缺少参数: token 不能为空"})
+		utils.ResponseError(c, http.StatusBadRequest, "缺少参数: token 不能为空")
 		return
 	}
 
 	profile, err := utils.GetUserProfile(token)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取用户信息失败: " + err.Error()})
+		utils.ResponseError(c, http.StatusInternalServerError, "获取用户信息失败: "+err.Error())
 		return
 	}
 
