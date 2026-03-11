@@ -10,7 +10,9 @@ import (
 
 	"github.com/zHElEARN/go-csust-planet/config"
 	"github.com/zHElEARN/go-csust-planet/model"
-	"github.com/zHElEARN/go-csust-planet/utils"
+	"github.com/zHElEARN/go-csust-planet/utils/jwt"
+	"github.com/zHElEARN/go-csust-planet/utils/response"
+	"github.com/zHElEARN/go-csust-planet/utils/sso"
 )
 
 type loginRequest struct {
@@ -32,15 +34,15 @@ type loginRequest struct {
 func Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ResponseError(c, http.StatusBadRequest, "无效的参数，请提供 token")
+		response.ResponseError(c, http.StatusBadRequest, "无效的参数，请提供 token")
 		return
 	}
 
 	// 获取用户信息
-	profile, err := utils.GetUserProfile(req.Token)
+	profile, err := sso.GetUserProfile(req.Token)
 	if err != nil {
 		// 如果无法获取用户信息，通常是 token 无效
-		utils.ResponseError(c, http.StatusUnauthorized, "获取用户信息失败或 Token 已过期")
+		response.ResponseError(c, http.StatusUnauthorized, "获取用户信息失败或 Token 已过期")
 		return
 	}
 
@@ -54,19 +56,19 @@ func Login(c *gin.Context) {
 				StudentID: profile.UserAccount,
 			}
 			if err := config.DB.Create(&user).Error; err != nil {
-				utils.ResponseError(c, http.StatusInternalServerError, "创建用户失败: "+err.Error())
+				response.ResponseError(c, http.StatusInternalServerError, "创建用户失败: "+err.Error())
 				return
 			}
 		} else {
-			utils.ResponseError(c, http.StatusInternalServerError, "数据库查询出错: "+result.Error.Error())
+			response.ResponseError(c, http.StatusInternalServerError, "数据库查询出错: "+result.Error.Error())
 			return
 		}
 	}
 
 	// 生成 JWT
-	jwtToken, err := utils.GenerateToken(user.ID, 30*24*time.Hour)
+	jwtToken, err := jwt.GenerateToken(user.ID, 30*24*time.Hour)
 	if err != nil {
-		utils.ResponseError(c, http.StatusInternalServerError, "生成令牌失败: "+err.Error())
+		response.ResponseError(c, http.StatusInternalServerError, "生成令牌失败: "+err.Error())
 		return
 	}
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/zHElEARN/go-csust-planet/config"
 	"github.com/zHElEARN/go-csust-planet/router"
-	"github.com/zHElEARN/go-csust-planet/utils"
+	"github.com/zHElEARN/go-csust-planet/utils/apns"
 	"github.com/zHElEARN/go-csust-planet/worker"
 )
 
@@ -17,7 +17,7 @@ import (
 func main() {
 	config.InitConfig()
 	config.InitDB()
-	utils.InitAPNS()
+	apns.InitAPNS()
 
 	worker.StartElectricityPushWorker()
 

@@ -4,11 +4,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/zHElEARN/go-csust-planet/config"
-	"github.com/zHElEARN/go-csust-planet/model"
-	"github.com/zHElEARN/go-csust-planet/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
+	"github.com/zHElEARN/go-csust-planet/config"
+	"github.com/zHElEARN/go-csust-planet/model"
+	"github.com/zHElEARN/go-csust-planet/utils/apns"
 )
 
 type TaskWithToken struct {
@@ -67,13 +68,13 @@ func StartElectricityPushWorker() {
 
 			for _, t := range tasks {
 				// 随便推送一下测试内容
-				notification := utils.PushNotification{
+				notification := apns.PushNotification{
 					DeviceToken: t.Token,
 					Title:       "电费定时推送",
 					Body:        "您的电费推送任务已执行，请留意电费情况。",
 					Sound:       "default",
 				}
-				err := utils.SendPushNotification(notification)
+				err := apns.SendPushNotification(notification)
 				if err != nil {
 					log.Printf("任务 %v 推送失败: %v\n", t.ID, err)
 				} else {

@@ -1,4 +1,4 @@
-package utils
+package apns
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"github.com/sideshow/apns2"
 	"github.com/sideshow/apns2/payload"
 	"github.com/sideshow/apns2/token"
+
 	"github.com/zHElEARN/go-csust-planet/config"
 )
 
@@ -116,10 +117,8 @@ func SendPushNotification(notification PushNotification) error {
 	}
 
 	if res.Sent() {
-		log.Printf("成功推送: %v", res.ApnsID)
 		return nil
-	} else {
-		log.Printf("推送失败: %v %v %v", res.StatusCode, res.ApnsID, res.Reason)
-		return fmt.Errorf("推送执行失败: %s", res.Reason)
 	}
+
+	return fmt.Errorf("%s", res.Reason)
 }

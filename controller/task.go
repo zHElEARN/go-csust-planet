@@ -7,10 +7,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
+
 	"github.com/zHElEARN/go-csust-planet/config"
 	"github.com/zHElEARN/go-csust-planet/model"
-	"github.com/zHElEARN/go-csust-planet/utils"
-	"gorm.io/gorm"
+	"github.com/zHElEARN/go-csust-planet/utils/response"
 )
 
 type addTaskRequest struct {
@@ -36,26 +37,26 @@ type addTaskRequest struct {
 func AddElectricityTask(c *gin.Context) {
 	userIdStr, exists := c.Get("userID")
 	if !exists {
-		utils.ResponseError(c, http.StatusUnauthorized, "未授权的访问")
+		response.ResponseError(c, http.StatusUnauthorized, "未授权的访问")
 		return
 	}
 
 	userID, err := uuid.Parse(userIdStr.(string))
 	if err != nil {
-		utils.ResponseError(c, http.StatusUnauthorized, "无效的用户ID")
+		response.ResponseError(c, http.StatusUnauthorized, "无效的用户ID")
 		return
 	}
 
 	var req addTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ResponseError(c, http.StatusBadRequest, "无效请求参数: "+err.Error())
+		response.ResponseError(c, http.StatusBadRequest, "无效请求参数: "+err.Error())
 		return
 	}
 
 	// 验证时间格式 "15:04"
 	_, err = time.Parse("15:04", req.NotifyTime)
 	if err != nil {
-		utils.ResponseError(c, http.StatusBadRequest, "notify_time 格式错误，请使用 HH:mm 格式，例如 15:04")
+		response.ResponseError(c, http.StatusBadRequest, "notify_time 格式错误，请使用 HH:mm 格式，例如 15:04")
 		return
 	}
 
@@ -99,7 +100,7 @@ func AddElectricityTask(c *gin.Context) {
 
 	if err != nil {
 		log.Printf("添加电费任务失败: %v\n", err)
-		utils.ResponseError(c, http.StatusInternalServerError, "添加任务失败: "+err.Error())
+		response.ResponseError(c, http.StatusInternalServerError, "添加任务失败: "+err.Error())
 		return
 	}
 

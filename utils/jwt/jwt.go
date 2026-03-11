@@ -1,10 +1,11 @@
-package utils
+package jwt
 
 import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+
 	"github.com/zHElEARN/go-csust-planet/config"
 )
 

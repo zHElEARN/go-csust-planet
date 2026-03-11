@@ -4,9 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "github.com/zHElEARN/go-csust-planet/docs"
+
 	"github.com/zHElEARN/go-csust-planet/config"
 	"github.com/zHElEARN/go-csust-planet/controller"
-	_ "github.com/zHElEARN/go-csust-planet/docs"
 	"github.com/zHElEARN/go-csust-planet/middleware"
 )
 

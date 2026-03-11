@@ -1,4 +1,4 @@
-package utils
+package sso
 
 import (
 	"encoding/json"
@@ -65,7 +65,7 @@ func GetUserProfile(token string) (*Profile, error) {
 	}
 
 	if ssoResp.Data == nil {
-		return nil, fmt.Errorf("Token 无效或数据为空，错误码: %s，错误信息: %s", ssoResp.ErrCode, ssoResp.ErrMsg)
+		return nil, fmt.Errorf("Token 无效或数据为空")
 	}
 
 	ssoResp.Data.Avatar = ssoResp.Data.getAvatarURL()

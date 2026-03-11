@@ -6,7 +6,11 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zHElEARN/go-csust-planet/utils"
+
+	"github.com/zHElEARN/go-csust-planet/utils/apns"
+	"github.com/zHElEARN/go-csust-planet/utils/campuscard"
+	"github.com/zHElEARN/go-csust-planet/utils/response"
+	"github.com/zHElEARN/go-csust-planet/utils/sso"
 )
 
 var (
@@ -51,35 +55,35 @@ func Electricity(c *gin.Context) {
 	roomNum := c.Query("room")
 
 	if campusName == "" || buildingName == "" || roomNum == "" {
-		utils.ResponseError(c, http.StatusBadRequest, "缺少参数: campus, building, room 均为必填")
+		response.ResponseError(c, http.StatusBadRequest, "缺少参数: campus, building, room 均为必填")
 		return
 	}
 
-	var targetCampus utils.Campus
+	var targetCampus campuscard.Campus
 	switch campusName {
 	case "云塘":
-		targetCampus = utils.CampusYuntang
+		targetCampus = campuscard.CampusYuntang
 	case "金盆岭":
-		targetCampus = utils.CampusJinpenling
+		targetCampus = campuscard.CampusJinpenling
 	default:
-		utils.ResponseError(c, http.StatusBadRequest, "无效的校区名称")
+		response.ResponseError(c, http.StatusBadRequest, "无效的校区名称")
 		return
 	}
 
-	var buildings []utils.Building
+	var buildings []campuscard.Building
 	if val, ok := buildingsCache.Load(targetCampus.ID); ok {
-		buildings = val.([]utils.Building)
+		buildings = val.([]campuscard.Building)
 	} else {
 		var err error
-		buildings, err = utils.GetBuildings(targetCampus)
+		buildings, err = campuscard.GetBuildings(targetCampus)
 		if err != nil {
-			utils.ResponseError(c, http.StatusInternalServerError, "获取楼栋列表失败: "+err.Error())
+			response.ResponseError(c, http.StatusInternalServerError, "获取楼栋列表失败: "+err.Error())
 			return
 		}
 		buildingsCache.Store(targetCampus.ID, buildings)
 	}
 
-	var targetBuilding *utils.Building
+	var targetBuilding *campuscard.Building
 	for _, b := range buildings {
 		if b.Name == buildingName {
 			targetBuilding = &b
@@ -88,13 +92,13 @@ func Electricity(c *gin.Context) {
 	}
 
 	if targetBuilding == nil {
-		utils.ResponseError(c, http.StatusNotFound, fmt.Sprintf("在%s未找到楼栋: %s", campusName, buildingName))
+		response.ResponseError(c, http.StatusNotFound, fmt.Sprintf("在%s未找到楼栋: %s", campusName, buildingName))
 		return
 	}
 
-	balance, err := utils.GetElectricity(*targetBuilding, roomNum)
+	balance, err := campuscard.GetElectricity(*targetBuilding, roomNum)
 	if err != nil {
-		utils.ResponseError(c, http.StatusInternalServerError, "查询电费失败: "+err.Error())
+		response.ResponseError(c, http.StatusInternalServerError, "查询电费失败: "+err.Error())
 		return
 	}
 
@@ -119,13 +123,13 @@ func Electricity(c *gin.Context) {
 func Profile(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {
-		utils.ResponseError(c, http.StatusBadRequest, "缺少参数: token 不能为空")
+		response.ResponseError(c, http.StatusBadRequest, "缺少参数: token 不能为空")
 		return
 	}
 
-	profile, err := utils.GetUserProfile(token)
+	profile, err := sso.GetUserProfile(token)
 	if err != nil {
-		utils.ResponseError(c, http.StatusInternalServerError, "获取用户信息失败: "+err.Error())
+		response.ResponseError(c, http.StatusInternalServerError, "获取用户信息失败: "+err.Error())
 		return
 	}
 
@@ -149,17 +153,17 @@ func Push(c *gin.Context) {
 	var req pushRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ResponseError(c, http.StatusBadRequest, "无效请求参数: "+err.Error())
+		response.ResponseError(c, http.StatusBadRequest, "无效请求参数: "+err.Error())
 		return
 	}
 
-	err := utils.SendPushNotification(utils.PushNotification{
+	err := apns.SendPushNotification(apns.PushNotification{
 		DeviceToken: req.DeviceToken,
 		Title:       req.Title,
 		Body:        req.Body,
 	})
 	if err != nil {
-		utils.ResponseError(c, http.StatusInternalServerError, "推送发送失败: "+err.Error())
+		response.ResponseError(c, http.StatusInternalServerError, "推送发送失败: "+err.Error())
 		return
 	}
 
