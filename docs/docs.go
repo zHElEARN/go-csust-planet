@@ -96,7 +96,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.SyncElectricityTaskRequest"
+                            "$ref": "#/definitions/controller.syncElectricityTaskRequest"
                         }
                     }
                 ],
@@ -308,7 +308,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "controller.ElectricityTaskOption": {
+        "controller.electricityTaskOption": {
             "type": "object",
             "required": [
                 "Building",
@@ -328,23 +328,6 @@ const docTemplate = `{
                 },
                 "Room": {
                     "type": "string"
-                }
-            }
-        },
-        "controller.SyncElectricityTaskRequest": {
-            "type": "object",
-            "required": [
-                "deviceToken"
-            ],
-            "properties": {
-                "deviceToken": {
-                    "type": "string"
-                },
-                "tasks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/controller.ElectricityTaskOption"
-                    }
                 }
             }
         },
@@ -375,6 +358,23 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "controller.syncElectricityTaskRequest": {
+            "type": "object",
+            "required": [
+                "deviceToken"
+            ],
+            "properties": {
+                "deviceToken": {
+                    "type": "string"
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/controller.electricityTaskOption"
+                    }
                 }
             }
         }

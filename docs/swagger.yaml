@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  controller.ElectricityTaskOption:
+  controller.electricityTaskOption:
     properties:
       Building:
         type: string
@@ -15,17 +15,6 @@ definitions:
     - Campus
     - NotifyTime
     - Room
-    type: object
-  controller.SyncElectricityTaskRequest:
-    properties:
-      deviceToken:
-        type: string
-      tasks:
-        items:
-          $ref: '#/definitions/controller.ElectricityTaskOption'
-        type: array
-    required:
-    - deviceToken
     type: object
   controller.loginRequest:
     properties:
@@ -46,6 +35,17 @@ definitions:
     - body
     - device_token
     - title
+    type: object
+  controller.syncElectricityTaskRequest:
+    properties:
+      deviceToken:
+        type: string
+      tasks:
+        items:
+          $ref: '#/definitions/controller.electricityTaskOption'
+        type: array
+    required:
+    - deviceToken
     type: object
 host: localhost:8080
 info:
@@ -103,7 +103,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/controller.SyncElectricityTaskRequest'
+          $ref: '#/definitions/controller.syncElectricityTaskRequest'
       produces:
       - application/json
       responses:

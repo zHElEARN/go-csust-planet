@@ -13,5 +13,5 @@ type DeviceToken struct {
 	CreatedAt time.Time `gorm:"type:timestamptz;not null;default:CURRENT_TIMESTAMP"`
 	UpdatedAt time.Time `gorm:"type:timestamptz;not null;default:CURRENT_TIMESTAMP"`
 
-	ElectricityTasks []ElectricityTask `gorm:"foreignKey:DeviceTokenID"`
+	ElectricityTasks []ElectricityTask `gorm:"foreignKey:DeviceTokenID;constraint:OnDelete:CASCADE;"`
 }
