@@ -1,23 +1,31 @@
 basePath: /
 definitions:
-  controller.addTaskRequest:
+  controller.ElectricityTaskOption:
     properties:
-      building:
+      Building:
         type: string
-      campus:
+      Campus:
         type: string
-      device_token:
+      NotifyTime:
         type: string
-      notify_time:
-        type: string
-      room:
+      Room:
         type: string
     required:
-    - building
-    - campus
-    - device_token
-    - notify_time
-    - room
+    - Building
+    - Campus
+    - NotifyTime
+    - Room
+    type: object
+  controller.SyncElectricityTaskRequest:
+    properties:
+      deviceToken:
+        type: string
+      tasks:
+        items:
+          $ref: '#/definitions/controller.ElectricityTaskOption'
+        type: array
+    required:
+    - deviceToken
     type: object
   controller.loginRequest:
     properties:
@@ -88,14 +96,14 @@ paths:
     post:
       consumes:
       - application/json
-      description: 添加一个新的电费定时推送任务
+      description: 同步电费定时推送任务
       parameters:
       - description: 任务请求内容
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/controller.addTaskRequest'
+          $ref: '#/definitions/controller.SyncElectricityTaskRequest'
       produces:
       - application/json
       responses:
@@ -116,7 +124,7 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: 添加电费推送任务
+      summary: 同步电费推送任务
       tags:
       - task
   /util/electricity:

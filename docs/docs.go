@@ -78,7 +78,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "添加一个新的电费定时推送任务",
+                "description": "同步电费定时推送任务",
                 "consumes": [
                     "application/json"
                 ],
@@ -88,7 +88,7 @@ const docTemplate = `{
                 "tags": [
                     "task"
                 ],
-                "summary": "添加电费推送任务",
+                "summary": "同步电费推送任务",
                 "parameters": [
                     {
                         "description": "任务请求内容",
@@ -96,7 +96,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.addTaskRequest"
+                            "$ref": "#/definitions/controller.SyncElectricityTaskRequest"
                         }
                     }
                 ],
@@ -308,30 +308,43 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "controller.addTaskRequest": {
+        "controller.ElectricityTaskOption": {
             "type": "object",
             "required": [
-                "building",
-                "campus",
-                "device_token",
-                "notify_time",
-                "room"
+                "Building",
+                "Campus",
+                "NotifyTime",
+                "Room"
             ],
             "properties": {
-                "building": {
+                "Building": {
                     "type": "string"
                 },
-                "campus": {
+                "Campus": {
                     "type": "string"
                 },
-                "device_token": {
+                "NotifyTime": {
                     "type": "string"
                 },
-                "notify_time": {
+                "Room": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.SyncElectricityTaskRequest": {
+            "type": "object",
+            "required": [
+                "deviceToken"
+            ],
+            "properties": {
+                "deviceToken": {
                     "type": "string"
                 },
-                "room": {
-                    "type": "string"
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/controller.ElectricityTaskOption"
+                    }
                 }
             }
         },

@@ -32,7 +32,7 @@ func SetupRouter() *gin.Engine {
 	taskGroup := r.Group("/task")
 	taskGroup.Use(middleware.AuthMiddleware())
 	{
-		taskGroup.POST("/electricity", controller.AddElectricityTask)
+		taskGroup.POST("/electricity", controller.SyncElectricityTask)
 	}
 
 	authGroup := r.Group("/auth")
