@@ -17,4 +17,7 @@ type ElectricityTask struct {
 	Campus   string `gorm:"type:varchar;not null;comment:校区"`
 	Building string `gorm:"type:varchar;not null;comment:宿舍楼"`
 	Room     string `gorm:"type:varchar;not null;comment:房间号"`
+
+	CreatedAt time.Time `gorm:"type:timestamptz;not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time `gorm:"type:timestamptz;not null;default:CURRENT_TIMESTAMP;index:idx_updated_at;comment:最后更新时间"`
 }
