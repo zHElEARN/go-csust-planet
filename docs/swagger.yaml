@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  controller.AddTaskRequest:
+  controller.addTaskRequest:
     properties:
       building:
         type: string
@@ -95,7 +95,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/controller.AddTaskRequest'
+          $ref: '#/definitions/controller.addTaskRequest'
       produces:
       - application/json
       responses:

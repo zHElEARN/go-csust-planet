@@ -9,5 +9,5 @@ import (
 )
 
 func HandleNotFound(c *gin.Context) {
-	response.ResponseError(c, http.StatusNotFound, "route not found")
+	response.ResponseError(c, http.StatusNotFound, "找不到路由")
 }

@@ -96,7 +96,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.AddTaskRequest"
+                            "$ref": "#/definitions/controller.addTaskRequest"
                         }
                     }
                 ],
@@ -308,7 +308,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "controller.AddTaskRequest": {
+        "controller.addTaskRequest": {
             "type": "object",
             "required": [
                 "building",

@@ -73,7 +73,7 @@ func Login(c *gin.Context) {
 	}
 
 	// 返回 JWT 和用户信息
-	c.JSON(http.StatusOK, gin.H{
+	response.ResponseSuccess(c, "登录成功", gin.H{
 		"token":   jwtToken,
 		"profile": profile,
 	})

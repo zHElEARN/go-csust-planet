@@ -28,7 +28,7 @@ type addTaskRequest struct {
 // @Tags         task
 // @Accept       json
 // @Produce      json
-// @Param        request  body      AddTaskRequest  true  "任务请求内容"
+// @Param        request  body      addTaskRequest  true  "任务请求内容"
 // @Success      200      {object}  map[string]interface{}
 // @Failure      400      {object}  map[string]interface{}
 // @Failure      500      {object}  map[string]interface{}
@@ -104,7 +104,5 @@ func AddElectricityTask(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "电费任务添加成功",
-	})
+	response.ResponseSuccess(c, "电费任务添加成功")
 }
