@@ -17,6 +17,18 @@ type loginRequest struct {
 	Token string `json:"token" binding:"required"`
 }
 
+// Login godoc
+// @Summary      用户登录
+// @Description  使用Token进行登录，如果用户不存在则自动注册。登录成功后返回含有JWT的凭证信息。
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      loginRequest  true  "登录请求，需包含获取的token"
+// @Success      200      {object}  map[string]interface{}
+// @Failure      400      {object}  map[string]interface{}
+// @Failure      401      {object}  map[string]interface{}
+// @Failure      500      {object}  map[string]interface{}
+// @Router       /auth/login [post]
 func Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -58,7 +70,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// 4. 返回 JWT 和用户信息
+	// 返回 JWT 和用户信息
 	c.JSON(http.StatusOK, gin.H{
 		"token":   jwtToken,
 		"profile": profile,

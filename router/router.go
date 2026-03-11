@@ -2,7 +2,10 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/zHElEARN/go-csust-planet/controller"
+	_ "github.com/zHElEARN/go-csust-planet/docs"
 )
 
 func SetupRouter() *gin.Engine {
@@ -21,6 +24,8 @@ func SetupRouter() *gin.Engine {
 	}
 
 	r.NoRoute(controller.HandleNotFound)
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return r
 }

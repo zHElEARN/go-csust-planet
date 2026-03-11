@@ -7,6 +7,11 @@ import (
 	"github.com/zHElEARN/go-csust-planet/router"
 )
 
+// @title           go-csust-planet API
+// @version         1.0
+// @description     go-csust-planet 项目的 API 接口文档
+// @host            localhost:8080
+// @BasePath        /
 func main() {
 	config.InitConfig()
 	config.InitDB()

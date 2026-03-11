@@ -13,12 +13,32 @@ var (
 	buildingsCache sync.Map
 )
 
+// Hello godoc
+// @Summary      Hello World测试
+// @Description  返回一个简单的hello world消息
+// @Tags         util
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Router       /util/hello [get]
 func Hello(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "hello world",
 	})
 }
 
+// Electricity godoc
+// @Summary      查询电费余额
+// @Description  根据校区、楼栋和房间号查询对应的电费余额
+// @Tags         util
+// @Produce      json
+// @Param        campus    query     string  true  "校区名称 (例如: 云塘, 金盆岭)"
+// @Param        building  query     string  true  "楼栋名称"
+// @Param        room      query     string  true  "房间号"
+// @Success      200       {object}  map[string]interface{}
+// @Failure      400       {object}  map[string]interface{}
+// @Failure      404       {object}  map[string]interface{}
+// @Failure      500       {object}  map[string]interface{}
+// @Router       /util/electricity [get]
 func Electricity(c *gin.Context) {
 	campusName := c.Query("campus")
 	buildingName := c.Query("building")
@@ -80,6 +100,16 @@ func Electricity(c *gin.Context) {
 	})
 }
 
+// Profile godoc
+// @Summary      获取用户个人信息
+// @Description  使用提供的token获取用户档案信息
+// @Tags         util
+// @Produce      json
+// @Param        token  query     string  true  "用户Token"
+// @Success      200    {object}  map[string]interface{}
+// @Failure      400    {object}  map[string]interface{}
+// @Failure      500    {object}  map[string]interface{}
+// @Router       /util/profile [get]
 func Profile(c *gin.Context) {
 	token := c.Query("token")
 	if token == "" {
