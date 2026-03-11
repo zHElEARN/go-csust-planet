@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/zHElEARN/go-csust-planet/config"
 	"github.com/zHElEARN/go-csust-planet/controller"
 	_ "github.com/zHElEARN/go-csust-planet/docs"
 	"github.com/zHElEARN/go-csust-planet/middleware"
@@ -12,13 +13,17 @@ import (
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
-	utilGroup := r.Group("/util")
-	utilGroup.Use(middleware.AuthMiddleware())
-	{
-		utilGroup.GET("/hello", controller.Hello)
-		utilGroup.GET("/electricity", controller.Electricity)
-		utilGroup.GET("/profile", controller.Profile)
-		utilGroup.POST("/push", controller.Push)
+	if config.AppConfig.AppMode != "production" {
+		utilGroup := r.Group("/util")
+		utilGroup.Use(middleware.AuthMiddleware())
+		{
+			utilGroup.GET("/hello", controller.Hello)
+			utilGroup.GET("/electricity", controller.Electricity)
+			utilGroup.GET("/profile", controller.Profile)
+			utilGroup.POST("/push", controller.Push)
+		}
+
+		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
 	authGroup := r.Group("/auth")
@@ -27,8 +32,6 @@ func SetupRouter() *gin.Engine {
 	}
 
 	r.NoRoute(controller.HandleNotFound)
-
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return r
 }

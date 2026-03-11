@@ -21,6 +21,7 @@ type Config struct {
 	APNSPrivateKeyPath string
 	APNSEnvironment    string
 	APNSBundleID       string
+	AppMode            string
 }
 
 var AppConfig *Config
@@ -45,7 +46,16 @@ func InitConfig() {
 		APNSPrivateKeyPath: getEnvOrFatal("APNS_PRIVATE_KEY_PATH"),
 		APNSEnvironment:    getEnvOrFatal("APNS_ENVIRONMENT"),
 		APNSBundleID:       getEnvOrFatal("APNS_BUNDLE_ID"),
+		AppMode:            getEnvOrDefault("APP_MODE", "development"),
 	}
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return defaultValue
+	}
+	return val
 }
 
 func getEnvOrFatal(key string) string {
