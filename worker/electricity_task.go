@@ -176,9 +176,25 @@ func StartElectricityPushWorker() {
 
 			log.Printf("拉取到 %d 个任务，开始顺序执行...\n", len(tasks))
 
+			// 用来记录本批次中已经判定失效的 DeviceTokenID
+			deadTokens := make(map[string]bool)
+
 			// 顺序执行任务
 			for _, task := range tasks {
-				processSingleTask(task, now)
+				tokenIDStr := task.DeviceTokenID.String()
+
+				// 如果该设备的 Token 在之前的任务中已经失效并被清理，直接跳过内存中的后续任务
+				if deadTokens[tokenIDStr] {
+					log.Printf("跳过任务 %v，因为所属设备 Token 已在当前批次中失效并被清理\n", task.ID)
+					continue
+				}
+
+				// 获取返回值，判断该 Token 是否已经被标记为失效
+				tokenInvalidated := processSingleTask(task, now)
+				if tokenInvalidated {
+					// 加入黑名单，本批次剩下的同 Token 任务会被直接跳过
+					deadTokens[tokenIDStr] = true
+				}
 			}
 
 			log.Printf("本批次 %d 个任务执行完毕\n", len(tasks))
@@ -187,7 +203,7 @@ func StartElectricityPushWorker() {
 }
 
 // 处理单个任务
-func processSingleTask(task TaskWithToken, batchStartTime time.Time) {
+func processSingleTask(task TaskWithToken, batchStartTime time.Time) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), TaskTimeout)
 	defer cancel()
 
@@ -233,6 +249,8 @@ func processSingleTask(task TaskWithToken, batchStartTime time.Time) {
 			log.Printf("检测到设备 Token 失效，正在删除相关的 DeviceToken (ID: %v)\n", task.DeviceTokenID)
 			// 直接删除 Token，外键的 OnDelete:CASCADE 会自动清理该设备下的所有 tasks
 			config.DB.Where("id = ?", task.DeviceTokenID).Delete(&model.DeviceToken{})
+
+			return true
 		} else {
 			// 其他错误（网络波动、查询电量超时、学校接口挂了等），将状态回滚为 pending
 			config.DB.Model(&model.ElectricityTask{}).
@@ -266,4 +284,5 @@ func processSingleTask(task TaskWithToken, batchStartTime time.Time) {
 				"updated_at":  time.Now(),
 			})
 	}
+	return false
 }
