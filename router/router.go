@@ -40,6 +40,11 @@ func SetupRouter() *gin.Engine {
 		authGroup.POST("/login", controller.Login)
 	}
 
+	configGroup := r.Group("/config")
+	{
+		configGroup.GET("/announcements", controller.GetAnnouncements)
+	}
+
 	r.NoRoute(controller.HandleNotFound)
 
 	return r

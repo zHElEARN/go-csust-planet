@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/sideshow/apns2"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
@@ -245,7 +246,7 @@ func processSingleTask(task TaskWithToken, batchStartTime time.Time) bool {
 
 		reason := taskErr.Error()
 		// 识别 APNs 明确告知设备失效的错误
-		if reason == "Unregistered" || reason == "BadDeviceToken" {
+		if reason == apns2.ReasonUnregistered || reason == apns2.ReasonBadDeviceToken {
 			log.Printf("检测到设备 Token 失效，正在删除相关的 DeviceToken (ID: %v)\n", task.DeviceTokenID)
 			// 直接删除 Token，外键的 OnDelete:CASCADE 会自动清理该设备下的所有 tasks
 			config.DB.Where("id = ?", task.DeviceTokenID).Delete(&model.DeviceToken{})

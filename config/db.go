@@ -34,6 +34,7 @@ func autoMigrate(db *gorm.DB) {
 		&model.User{},
 		&model.DeviceToken{},
 		&model.ElectricityTask{},
+		&model.Announcement{},
 	)
 	if err != nil {
 		log.Fatalf("数据库自动迁移失败: %v", err)

@@ -65,6 +65,34 @@
                 }
             }
         },
+        "/config/announcements": {
+            "get": {
+                "description": "获取当前生效的公告列表，按创建时间倒序排列",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "获取公告列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/task/electricity": {
             "post": {
                 "security": [

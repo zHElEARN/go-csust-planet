@@ -92,6 +92,25 @@ paths:
       summary: 用户登录
       tags:
       - auth
+  /config/announcements:
+    get:
+      description: 获取当前生效的公告列表，按创建时间倒序排列
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取公告列表
+      tags:
+      - config
   /task/electricity:
     post:
       consumes:
