@@ -31,7 +31,7 @@ type pushRequest struct {
 // @Success      200  {object}  map[string]string
 // @Router       /util/hello [get]
 func Hello(c *gin.Context) {
-	response.ResponseSuccess(c, "hello world")
+	c.JSON(http.StatusOK, gin.H{"message": "hello world"})
 }
 
 // Electricity godoc
@@ -100,7 +100,7 @@ func Electricity(c *gin.Context) {
 		return
 	}
 
-	response.ResponseSuccess(c, "查询电费成功", gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"balance":  balance,
 		"campus":   campusName,
 		"building": buildingName,
@@ -131,9 +131,7 @@ func Profile(c *gin.Context) {
 		return
 	}
 
-	response.ResponseSuccess(c, "获取用户信息成功", gin.H{
-		"profile": profile,
-	})
+	c.JSON(http.StatusOK, profile)
 }
 
 // Push godoc
@@ -165,5 +163,5 @@ func Push(c *gin.Context) {
 		return
 	}
 
-	response.ResponseSuccess(c, "推送发送成功")
+	c.JSON(http.StatusOK, gin.H{"message": "推送发送成功"})
 }

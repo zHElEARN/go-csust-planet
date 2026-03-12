@@ -137,5 +137,5 @@ func SyncElectricityTask(c *gin.Context) {
 		return
 	}
 
-	response.ResponseSuccess(c, "电费任务同步成功")
+	c.JSON(http.StatusOK, gin.H{"message": "电费任务同步成功"})
 }

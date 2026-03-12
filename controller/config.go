@@ -25,9 +25,7 @@ func GetAnnouncements(c *gin.Context) {
 		return
 	}
 
-	response.ResponseSuccess(c, "获取公告成功", gin.H{
-		"announcements": announcements,
-	})
+	c.JSON(http.StatusOK, announcements)
 }
 
 // GetCampusMap godoc
