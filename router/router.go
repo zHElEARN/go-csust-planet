@@ -43,6 +43,7 @@ func SetupRouter() *gin.Engine {
 	configGroup := r.Group("/config")
 	{
 		configGroup.GET("/announcements", controller.GetAnnouncements)
+		configGroup.GET("/campus-map", controller.GetCampusMap)
 	}
 
 	r.NoRoute(controller.HandleNotFound)

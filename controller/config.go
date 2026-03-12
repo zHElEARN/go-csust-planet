@@ -29,3 +29,33 @@ func GetAnnouncements(c *gin.Context) {
 		"announcements": announcements,
 	})
 }
+
+// GetCampusMap godoc
+// @Summary      获取校园地图数据
+// @Description  获取GeoJSON格式的校园地图数据
+// @Tags         config
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]interface{}
+// @Router       /config/campus-map [get]
+func GetCampusMap(c *gin.Context) {
+	var features []model.CampusMapFeature
+	if err := config.DB.Find(&features).Error; err != nil {
+		response.ResponseError(c, http.StatusInternalServerError, "获取校园地图数据失败: "+err.Error())
+		return
+	}
+
+	geoJsonFeatures := make([]map[string]interface{}, 0, len(features))
+	for _, f := range features {
+		geoJsonFeatures = append(geoJsonFeatures, map[string]interface{}{
+			"type":       f.Type,
+			"properties": f.Properties,
+			"geometry":   f.Geometry,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"type":     "FeatureCollection",
+		"features": geoJsonFeatures,
+	})
+}

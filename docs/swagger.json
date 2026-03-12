@@ -93,6 +93,34 @@
                 }
             }
         },
+        "/config/campus-map": {
+            "get": {
+                "description": "获取GeoJSON格式的校园地图数据",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "获取校园地图数据",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/task/electricity": {
             "post": {
                 "security": [

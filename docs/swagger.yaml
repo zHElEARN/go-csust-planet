@@ -111,6 +111,25 @@ paths:
       summary: 获取公告列表
       tags:
       - config
+  /config/campus-map:
+    get:
+      description: 获取GeoJSON格式的校园地图数据
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取校园地图数据
+      tags:
+      - config
   /task/electricity:
     post:
       consumes:
