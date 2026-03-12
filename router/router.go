@@ -44,6 +44,8 @@ func SetupRouter() *gin.Engine {
 	{
 		configGroup.GET("/announcements", controller.GetAnnouncements)
 		configGroup.GET("/campus-map", controller.GetCampusMap)
+		configGroup.GET("/app-versions", controller.GetAppVersions)
+		configGroup.GET("/app-version/check", controller.CheckAppVersion)
 	}
 
 	r.NoRoute(controller.HandleNotFound)

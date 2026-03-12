@@ -93,6 +93,109 @@
                 }
             }
         },
+        "/config/app-version/check": {
+            "get": {
+                "description": "检查指定平台的App是否有更新",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "检查App版本更新",
+                "parameters": [
+                    {
+                        "enum": [
+                            "ios",
+                            "android"
+                        ],
+                        "type": "string",
+                        "description": "平台(ios或android)",
+                        "name": "platform",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "当前版本号",
+                        "name": "current_version_code",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/config/app-versions": {
+            "get": {
+                "description": "获取指定平台的所有App版本历史",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "获取App所有版本",
+                "parameters": [
+                    {
+                        "enum": [
+                            "ios",
+                            "android"
+                        ],
+                        "type": "string",
+                        "description": "平台(ios或android)",
+                        "name": "platform",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/config/campus-map": {
             "get": {
                 "description": "获取GeoJSON格式的校园地图数据",
