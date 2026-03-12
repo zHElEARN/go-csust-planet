@@ -15,9 +15,11 @@ import (
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
+	v1 := r.Group("/v1")
+
 	// 仅开发模式下启用
 	if config.AppConfig.AppMode != "production" {
-		utilGroup := r.Group("/util")
+		utilGroup := v1.Group("/util")
 		utilGroup.Use(middleware.AuthMiddleware())
 		{
 			utilGroup.GET("/hello", controller.Hello)
@@ -29,18 +31,18 @@ func SetupRouter() *gin.Engine {
 		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
-	taskGroup := r.Group("/task")
+	taskGroup := v1.Group("/task")
 	taskGroup.Use(middleware.AuthMiddleware())
 	{
 		taskGroup.POST("/electricity", controller.SyncElectricityTask)
 	}
 
-	authGroup := r.Group("/auth")
+	authGroup := v1.Group("/auth")
 	{
 		authGroup.POST("/login", controller.Login)
 	}
 
-	configGroup := r.Group("/config")
+	configGroup := v1.Group("/config")
 	{
 		configGroup.GET("/announcements", controller.GetAnnouncements)
 		configGroup.GET("/campus-map", controller.GetCampusMap)

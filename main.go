@@ -13,7 +13,7 @@ import (
 // @version         1.0
 // @description     go-csust-planet 项目的 API 接口文档
 // @host            localhost:8080
-// @BasePath        /
+// @BasePath        /v1
 func main() {
 	config.InitConfig()
 	config.InitDB()
