@@ -9,15 +9,12 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/zHElEARN/go-csust-planet/config"
+	"github.com/zHElEARN/go-csust-planet/dto"
 	"github.com/zHElEARN/go-csust-planet/model"
 	"github.com/zHElEARN/go-csust-planet/utils/jwt"
 	"github.com/zHElEARN/go-csust-planet/utils/response"
 	"github.com/zHElEARN/go-csust-planet/utils/sso"
 )
-
-type loginRequest struct {
-	Token string `json:"token" binding:"required"`
-}
 
 // Login godoc
 // @Summary      用户登录
@@ -25,14 +22,14 @@ type loginRequest struct {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param        request  body      loginRequest  true  "登录请求，需包含获取的token"
-// @Success      200      {object}  map[string]interface{}
+// @Param        request  body      dto.LoginRequest  true  "登录请求，需包含获取的token"
+// @Success      200      {object}  dto.LoginResponse
 // @Failure      400      {object}  map[string]interface{}
 // @Failure      401      {object}  map[string]interface{}
 // @Failure      500      {object}  map[string]interface{}
 // @Router       /auth/login [post]
 func Login(c *gin.Context) {
-	var req loginRequest
+	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ResponseError(c, http.StatusBadRequest, "无效的参数，请提供 token")
 		return
@@ -73,8 +70,8 @@ func Login(c *gin.Context) {
 	}
 
 	// 返回 JWT 和用户信息
-	c.JSON(http.StatusOK, gin.H{
-		"token":   jwtToken,
-		"profile": profile,
+	c.JSON(http.StatusOK, dto.LoginResponse{
+		Token:   jwtToken,
+		Profile: profile,
 	})
 }

@@ -16,13 +16,6 @@ definitions:
     - notifyTime
     - room
     type: object
-  controller.loginRequest:
-    properties:
-      token:
-        type: string
-    required:
-    - token
-    type: object
   controller.pushRequest:
     properties:
       body:
@@ -102,6 +95,20 @@ definitions:
       latestVersion:
         $ref: '#/definitions/dto.AppVersionResponse'
     type: object
+  dto.LoginRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  dto.LoginResponse:
+    properties:
+      profile:
+        $ref: '#/definitions/sso.Profile'
+      token:
+        type: string
+    type: object
   dto.SemesterCalendarDetailResponse:
     properties:
       calendarEnd:
@@ -177,6 +184,39 @@ definitions:
       name:
         type: string
     type: object
+  sso.Profile:
+    properties:
+      avatar:
+        description: 最终头像链接
+        type: string
+      categoryName:
+        description: 学生类别
+        type: string
+      certCode:
+        description: 身份证号（打码）
+        type: string
+      defaultUserAvatar:
+        description: 默认头像链接
+        type: string
+      deptName:
+        description: 学院名称
+        type: string
+      email:
+        description: 邮箱
+        type: string
+      headImageIcon:
+        description: 用户设置的头像链接
+        type: string
+      phone:
+        description: 手机号（打码）
+        type: string
+      userAccount:
+        description: 学号
+        type: string
+      userName:
+        description: 姓名
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -195,15 +235,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/controller.loginRequest'
+          $ref: '#/definitions/dto.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.LoginResponse'
         "400":
           description: Bad Request
           schema:

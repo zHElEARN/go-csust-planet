@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.loginRequest"
+                            "$ref": "#/definitions/dto.LoginRequest"
                         }
                     }
                 ],
@@ -43,8 +43,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.LoginResponse"
                         }
                     },
                     "400": {
@@ -565,17 +564,6 @@ const docTemplate = `{
                 }
             }
         },
-        "controller.loginRequest": {
-            "type": "object",
-            "required": [
-                "token"
-            ],
-            "properties": {
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
         "controller.pushRequest": {
             "type": "object",
             "required": [
@@ -697,6 +685,28 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.LoginRequest": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "profile": {
+                    "$ref": "#/definitions/sso.Profile"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.SemesterCalendarDetailResponse": {
             "type": "object",
             "properties": {
@@ -808,6 +818,51 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "sso.Profile": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "最终头像链接",
+                    "type": "string"
+                },
+                "categoryName": {
+                    "description": "学生类别",
+                    "type": "string"
+                },
+                "certCode": {
+                    "description": "身份证号（打码）",
+                    "type": "string"
+                },
+                "defaultUserAvatar": {
+                    "description": "默认头像链接",
+                    "type": "string"
+                },
+                "deptName": {
+                    "description": "学院名称",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string"
+                },
+                "headImageIcon": {
+                    "description": "用户设置的头像链接",
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "手机号（打码）",
+                    "type": "string"
+                },
+                "userAccount": {
+                    "description": "学号",
+                    "type": "string"
+                },
+                "userName": {
+                    "description": "姓名",
                     "type": "string"
                 }
             }
