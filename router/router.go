@@ -13,6 +13,12 @@ import (
 )
 
 func SetupRouter() *gin.Engine {
+	if config.AppConfig.AppMode == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+
 	r := gin.Default()
 
 	v1 := r.Group("/v1")
