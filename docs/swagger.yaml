@@ -67,6 +67,24 @@ definitions:
       title:
         type: string
     type: object
+  dto.CampusMapFeatureResponse:
+    properties:
+      geometry:
+        $ref: '#/definitions/model.FeatureGeometry'
+      properties:
+        $ref: '#/definitions/model.FeatureProperties'
+      type:
+        type: string
+    type: object
+  dto.CampusMapResponse:
+    properties:
+      features:
+        items:
+          $ref: '#/definitions/dto.CampusMapFeatureResponse'
+        type: array
+      type:
+        type: string
+    type: object
   model.CalendarNote:
     properties:
       content:
@@ -84,6 +102,29 @@ definitions:
         type: integer
       startRow:
         type: integer
+    type: object
+  model.FeatureGeometry:
+    properties:
+      coordinates:
+        items:
+          items:
+            items:
+              format: float64
+              type: number
+            type: array
+          type: array
+        type: array
+      type:
+        type: string
+    type: object
+  model.FeatureProperties:
+    properties:
+      campus:
+        type: string
+      category:
+        type: string
+      name:
+        type: string
     type: object
   model.SemesterCalendar:
     properties:
@@ -255,8 +296,7 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.CampusMapResponse'
         "500":
           description: Internal Server Error
           schema:

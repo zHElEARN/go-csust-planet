@@ -218,8 +218,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.CampusMapResponse"
                         }
                     },
                     "500": {
@@ -643,6 +642,34 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CampusMapFeatureResponse": {
+            "type": "object",
+            "properties": {
+                "geometry": {
+                    "$ref": "#/definitions/model.FeatureGeometry"
+                },
+                "properties": {
+                    "$ref": "#/definitions/model.FeatureProperties"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CampusMapResponse": {
+            "type": "object",
+            "properties": {
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CampusMapFeatureResponse"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "model.CalendarNote": {
             "type": "object",
             "properties": {
@@ -668,6 +695,41 @@ const docTemplate = `{
                 },
                 "startRow": {
                     "type": "integer"
+                }
+            }
+        },
+        "model.FeatureGeometry": {
+            "type": "object",
+            "properties": {
+                "coordinates": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "array",
+                            "items": {
+                                "type": "number",
+                                "format": "float64"
+                            }
+                        }
+                    }
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.FeatureProperties": {
+            "type": "object",
+            "properties": {
+                "campus": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
                 }
             }
         },

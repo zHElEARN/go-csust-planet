@@ -35,7 +35,7 @@ func GetAnnouncements(c *gin.Context) {
 // @Description  获取GeoJSON格式的校园地图数据
 // @Tags         config
 // @Produce      json
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {object}  dto.CampusMapResponse
 // @Failure      500  {object}  map[string]interface{}
 // @Router       /config/campus-map [get]
 func GetCampusMap(c *gin.Context) {
@@ -45,19 +45,8 @@ func GetCampusMap(c *gin.Context) {
 		return
 	}
 
-	geoJsonFeatures := make([]map[string]any, 0, len(features))
-	for _, f := range features {
-		geoJsonFeatures = append(geoJsonFeatures, map[string]any{
-			"type":       f.Type,
-			"properties": f.Properties,
-			"geometry":   f.Geometry,
-		})
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"type":     "FeatureCollection",
-		"features": geoJsonFeatures,
-	})
+	res := dto.MapCampusMapFeatures(features)
+	c.JSON(http.StatusOK, res)
 }
 
 type appVersionsRequest struct {
