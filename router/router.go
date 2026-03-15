@@ -19,15 +19,6 @@ func SetupRouter() *gin.Engine {
 
 	// 仅开发模式下启用
 	if config.AppConfig.AppMode != "production" {
-		utilGroup := v1.Group("/util")
-		utilGroup.Use(middleware.AuthMiddleware())
-		{
-			utilGroup.GET("/hello", controller.Hello)
-			utilGroup.GET("/electricity", controller.Electricity)
-			utilGroup.GET("/profile", controller.Profile)
-			utilGroup.POST("/push", controller.Push)
-		}
-
 		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
