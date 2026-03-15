@@ -1,14 +1,5 @@
 basePath: /v1
 definitions:
-  controller.SemesterCalendarListResp:
-    properties:
-      semesterCode:
-        type: string
-      subtitle:
-        type: string
-      title:
-        type: string
-    type: object
   controller.electricityTaskOption:
     properties:
       building:
@@ -111,6 +102,40 @@ definitions:
       latestVersion:
         $ref: '#/definitions/dto.AppVersionResponse'
     type: object
+  dto.SemesterCalendarDetailResponse:
+    properties:
+      calendarEnd:
+        type: string
+      calendarStart:
+        type: string
+      customWeekRanges:
+        items:
+          $ref: '#/definitions/model.CustomWeekRange'
+        type: array
+      notes:
+        items:
+          $ref: '#/definitions/model.CalendarNote'
+        type: array
+      semesterCode:
+        type: string
+      semesterEnd:
+        type: string
+      semesterStart:
+        type: string
+      subtitle:
+        type: string
+      title:
+        type: string
+    type: object
+  dto.SemesterCalendarListResponse:
+    properties:
+      semesterCode:
+        type: string
+      subtitle:
+        type: string
+      title:
+        type: string
+    type: object
   model.CalendarNote:
     properties:
       content:
@@ -150,31 +175,6 @@ definitions:
       category:
         type: string
       name:
-        type: string
-    type: object
-  model.SemesterCalendar:
-    properties:
-      calendarEnd:
-        type: string
-      calendarStart:
-        type: string
-      customWeekRanges:
-        items:
-          $ref: '#/definitions/model.CustomWeekRange'
-        type: array
-      notes:
-        items:
-          $ref: '#/definitions/model.CalendarNote'
-        type: array
-      semesterCode:
-        type: string
-      semesterEnd:
-        type: string
-      semesterStart:
-        type: string
-      subtitle:
-        type: string
-      title:
         type: string
     type: object
 host: localhost:8080
@@ -242,7 +242,41 @@ paths:
       summary: 获取公告列表
       tags:
       - config
-  /config/app-version/check:
+  /config/app-versions:
+    get:
+      description: 获取指定平台的所有App版本历史
+      parameters:
+      - description: 平台(ios或android)
+        enum:
+        - ios
+        - android
+        in: query
+        name: platform
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.AppVersionResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 获取App所有版本
+      tags:
+      - config
+  /config/app-versions/check:
     get:
       description: 检查指定平台的App是否有更新
       parameters:
@@ -279,40 +313,6 @@ paths:
       summary: 检查App版本更新
       tags:
       - config
-  /config/app-versions:
-    get:
-      description: 获取指定平台的所有App版本历史
-      parameters:
-      - description: 平台(ios或android)
-        enum:
-        - ios
-        - android
-        in: query
-        name: platform
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/dto.AppVersionResponse'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: 获取App所有版本
-      tags:
-      - config
   /config/campus-map:
     get:
       description: 获取GeoJSON格式的校园地图数据
@@ -341,7 +341,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/controller.SemesterCalendarListResp'
+              $ref: '#/definitions/dto.SemesterCalendarListResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -366,7 +366,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.SemesterCalendar'
+            $ref: '#/definitions/dto.SemesterCalendarDetailResponse'
         "400":
           description: Bad Request
           schema:

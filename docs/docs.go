@@ -101,7 +101,57 @@ const docTemplate = `{
                 }
             }
         },
-        "/config/app-version/check": {
+        "/config/app-versions": {
+            "get": {
+                "description": "获取指定平台的所有App版本历史",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "获取App所有版本",
+                "parameters": [
+                    {
+                        "enum": [
+                            "ios",
+                            "android"
+                        ],
+                        "type": "string",
+                        "description": "平台(ios或android)",
+                        "name": "platform",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.AppVersionResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/config/app-versions/check": {
             "get": {
                 "description": "检查指定平台的App是否有更新",
                 "produces": [
@@ -136,56 +186,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/dto.CheckAppVersionResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/config/app-versions": {
-            "get": {
-                "description": "获取指定平台的所有App版本历史",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "config"
-                ],
-                "summary": "获取App所有版本",
-                "parameters": [
-                    {
-                        "enum": [
-                            "ios",
-                            "android"
-                        ],
-                        "type": "string",
-                        "description": "平台(ios或android)",
-                        "name": "platform",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.AppVersionResponse"
-                            }
                         }
                     },
                     "400": {
@@ -248,7 +248,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/controller.SemesterCalendarListResp"
+                                "$ref": "#/definitions/dto.SemesterCalendarListResponse"
                             }
                         }
                     },
@@ -285,7 +285,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.SemesterCalendar"
+                            "$ref": "#/definitions/dto.SemesterCalendarDetailResponse"
                         }
                     },
                     "400": {
@@ -542,20 +542,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "controller.SemesterCalendarListResp": {
-            "type": "object",
-            "properties": {
-                "semesterCode": {
-                    "type": "string"
-                },
-                "subtitle": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
         "controller.electricityTaskOption": {
             "type": "object",
             "required": [
@@ -711,6 +697,58 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.SemesterCalendarDetailResponse": {
+            "type": "object",
+            "properties": {
+                "calendarEnd": {
+                    "type": "string"
+                },
+                "calendarStart": {
+                    "type": "string"
+                },
+                "customWeekRanges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.CustomWeekRange"
+                    }
+                },
+                "notes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.CalendarNote"
+                    }
+                },
+                "semesterCode": {
+                    "type": "string"
+                },
+                "semesterEnd": {
+                    "type": "string"
+                },
+                "semesterStart": {
+                    "type": "string"
+                },
+                "subtitle": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SemesterCalendarListResponse": {
+            "type": "object",
+            "properties": {
+                "semesterCode": {
+                    "type": "string"
+                },
+                "subtitle": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "model.CalendarNote": {
             "type": "object",
             "properties": {
@@ -770,44 +808,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.SemesterCalendar": {
-            "type": "object",
-            "properties": {
-                "calendarEnd": {
-                    "type": "string"
-                },
-                "calendarStart": {
-                    "type": "string"
-                },
-                "customWeekRanges": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.CustomWeekRange"
-                    }
-                },
-                "notes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.CalendarNote"
-                    }
-                },
-                "semesterCode": {
-                    "type": "string"
-                },
-                "semesterEnd": {
-                    "type": "string"
-                },
-                "semesterStart": {
-                    "type": "string"
-                },
-                "subtitle": {
-                    "type": "string"
-                },
-                "title": {
                     "type": "string"
                 }
             }

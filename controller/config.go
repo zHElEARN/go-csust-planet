@@ -86,7 +86,7 @@ func GetAppVersions(c *gin.Context) {
 // @Success      200                   {object}  dto.CheckAppVersionResponse
 // @Failure      400                   {object}  map[string]interface{}
 // @Failure      500                   {object}  map[string]interface{}
-// @Router       /config/app-version/check [get]
+// @Router       /config/app-versions/check [get]
 func CheckAppVersion(c *gin.Context) {
 	var req dto.CheckAppVersionRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -124,18 +124,12 @@ func CheckAppVersion(c *gin.Context) {
 	})
 }
 
-type SemesterCalendarListResp struct {
-	SemesterCode string `json:"semesterCode"`
-	Title        string `json:"title"`
-	Subtitle     string `json:"subtitle"`
-}
-
 // GetSemesterCalendars godoc
 // @Summary      获取校历列表
 // @Description  获取所有校历的列表，按学期代码倒序排列
 // @Tags         config
 // @Produce      json
-// @Success      200  {array}   SemesterCalendarListResp
+// @Success      200  {array}   dto.SemesterCalendarListResponse
 // @Failure      500  {object}  map[string]interface{}
 // @Router       /config/semester-calendars [get]
 func GetSemesterCalendars(c *gin.Context) {
@@ -145,16 +139,8 @@ func GetSemesterCalendars(c *gin.Context) {
 		return
 	}
 
-	resp := make([]SemesterCalendarListResp, 0, len(calendars))
-	for _, cal := range calendars {
-		resp = append(resp, SemesterCalendarListResp{
-			SemesterCode: cal.SemesterCode,
-			Title:        cal.Title,
-			Subtitle:     cal.Subtitle,
-		})
-	}
-
-	c.JSON(http.StatusOK, resp)
+	res := dto.MapSemesterCalendarList(calendars)
+	c.JSON(http.StatusOK, res)
 }
 
 // GetSemesterCalendarDetail godoc
@@ -163,7 +149,7 @@ func GetSemesterCalendars(c *gin.Context) {
 // @Tags         config
 // @Produce      json
 // @Param        semester_code path     string  true  "学期代码(如: 2024-2025-1)"
-// @Success      200           {object} model.SemesterCalendar
+// @Success      200           {object} dto.SemesterCalendarDetailResponse
 // @Failure      400           {object} map[string]interface{}
 // @Failure      404           {object} map[string]interface{}
 // @Router       /config/semester-calendars/{semester_code} [get]
@@ -180,5 +166,6 @@ func GetSemesterCalendarDetail(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, calendar)
+	res := dto.FromSemesterCalendarDetailModel(calendar)
+	c.JSON(http.StatusOK, res)
 }
