@@ -11,21 +11,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/zHElEARN/go-csust-planet/config"
+	"github.com/zHElEARN/go-csust-planet/dto"
 	"github.com/zHElEARN/go-csust-planet/model"
 	"github.com/zHElEARN/go-csust-planet/utils/response"
 )
-
-type electricityTaskOption struct {
-	NotifyTime string `json:"notifyTime" binding:"required"`
-	Campus     string `json:"campus" binding:"required"`
-	Building   string `json:"building" binding:"required"`
-	Room       string `json:"room" binding:"required"`
-}
-
-type syncElectricityTaskRequest struct {
-	DeviceToken string                  `json:"deviceToken" binding:"required"`
-	Tasks       []electricityTaskOption `json:"tasks"`
-}
 
 // SyncElectricityTask godoc
 // @Summary      同步电费推送任务
@@ -33,8 +22,8 @@ type syncElectricityTaskRequest struct {
 // @Tags         task
 // @Accept       json
 // @Produce      json
-// @Param        request  body      syncElectricityTaskRequest  true  "任务请求内容"
-// @Success      200      {object}  map[string]interface{}
+// @Param        request  body      dto.SyncElectricityTaskRequest  true  "任务请求内容"
+// @Success      204      "成功，无返回内容"
 // @Failure      400      {object}  map[string]interface{}
 // @Failure      500      {object}  map[string]interface{}
 // @Router       /task/electricity [post]
@@ -52,7 +41,7 @@ func SyncElectricityTask(c *gin.Context) {
 		return
 	}
 
-	var req syncElectricityTaskRequest
+	var req dto.SyncElectricityTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ResponseError(c, http.StatusBadRequest, "无效请求参数: "+err.Error())
 		return
@@ -76,7 +65,7 @@ func SyncElectricityTask(c *gin.Context) {
 		}
 
 		// 用来快速比较的 map
-		incomingMap := make(map[string]electricityTaskOption)
+		incomingMap := make(map[string]dto.ElectricityTaskOption)
 		for _, t := range req.Tasks {
 			key := t.NotifyTime + "|" + t.Campus + "|" + t.Building + "|" + t.Room
 			incomingMap[key] = t
@@ -137,5 +126,5 @@ func SyncElectricityTask(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "电费任务同步成功"})
+	c.Status(http.StatusNoContent)
 }

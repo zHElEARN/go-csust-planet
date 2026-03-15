@@ -1,21 +1,5 @@
 basePath: /v1
 definitions:
-  controller.electricityTaskOption:
-    properties:
-      building:
-        type: string
-      campus:
-        type: string
-      notifyTime:
-        type: string
-      room:
-        type: string
-    required:
-    - building
-    - campus
-    - notifyTime
-    - room
-    type: object
   controller.pushRequest:
     properties:
       body:
@@ -28,17 +12,6 @@ definitions:
     - body
     - deviceToken
     - title
-    type: object
-  controller.syncElectricityTaskRequest:
-    properties:
-      deviceToken:
-        type: string
-      tasks:
-        items:
-          $ref: '#/definitions/controller.electricityTaskOption'
-        type: array
-    required:
-    - deviceToken
     type: object
   dto.AnnouncementResponse:
     properties:
@@ -95,6 +68,22 @@ definitions:
       latestVersion:
         $ref: '#/definitions/dto.AppVersionResponse'
     type: object
+  dto.ElectricityTaskOption:
+    properties:
+      building:
+        type: string
+      campus:
+        type: string
+      notifyTime:
+        type: string
+      room:
+        type: string
+    required:
+    - building
+    - campus
+    - notifyTime
+    - room
+    type: object
   dto.LoginRequest:
     properties:
       token:
@@ -142,6 +131,17 @@ definitions:
         type: string
       title:
         type: string
+    type: object
+  dto.SyncElectricityTaskRequest:
+    properties:
+      deviceToken:
+        type: string
+      tasks:
+        items:
+          $ref: '#/definitions/dto.ElectricityTaskOption'
+        type: array
+    required:
+    - deviceToken
     type: object
   model.CalendarNote:
     properties:
@@ -430,15 +430,12 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/controller.syncElectricityTaskRequest'
+          $ref: '#/definitions/dto.SyncElectricityTaskRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
+        "204":
+          description: 成功，无返回内容
         "400":
           description: Bad Request
           schema:

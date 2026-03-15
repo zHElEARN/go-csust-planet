@@ -329,17 +329,13 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.syncElectricityTaskRequest"
+                            "$ref": "#/definitions/dto.SyncElectricityTaskRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
+                    "204": {
+                        "description": "成功，无返回内容"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -541,29 +537,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "controller.electricityTaskOption": {
-            "type": "object",
-            "required": [
-                "building",
-                "campus",
-                "notifyTime",
-                "room"
-            ],
-            "properties": {
-                "building": {
-                    "type": "string"
-                },
-                "campus": {
-                    "type": "string"
-                },
-                "notifyTime": {
-                    "type": "string"
-                },
-                "room": {
-                    "type": "string"
-                }
-            }
-        },
         "controller.pushRequest": {
             "type": "object",
             "required": [
@@ -580,23 +553,6 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
-                }
-            }
-        },
-        "controller.syncElectricityTaskRequest": {
-            "type": "object",
-            "required": [
-                "deviceToken"
-            ],
-            "properties": {
-                "deviceToken": {
-                    "type": "string"
-                },
-                "tasks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/controller.electricityTaskOption"
-                    }
                 }
             }
         },
@@ -685,6 +641,29 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ElectricityTaskOption": {
+            "type": "object",
+            "required": [
+                "building",
+                "campus",
+                "notifyTime",
+                "room"
+            ],
+            "properties": {
+                "building": {
+                    "type": "string"
+                },
+                "campus": {
+                    "type": "string"
+                },
+                "notifyTime": {
+                    "type": "string"
+                },
+                "room": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.LoginRequest": {
             "type": "object",
             "required": [
@@ -756,6 +735,23 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.SyncElectricityTaskRequest": {
+            "type": "object",
+            "required": [
+                "deviceToken"
+            ],
+            "properties": {
+                "deviceToken": {
+                    "type": "string"
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ElectricityTaskOption"
+                    }
                 }
             }
         },
