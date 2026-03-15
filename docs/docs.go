@@ -85,8 +85,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.AnnouncementResponse"
+                            }
                         }
                     },
                     "500": {
@@ -621,6 +623,23 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/controller.electricityTaskOption"
                     }
+                }
+            }
+        },
+        "dto.AnnouncementResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "isBanner": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },

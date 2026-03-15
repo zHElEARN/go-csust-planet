@@ -56,6 +56,17 @@ definitions:
     required:
     - deviceToken
     type: object
+  dto.AnnouncementResponse:
+    properties:
+      content:
+        type: string
+      createdAt:
+        type: string
+      isBanner:
+        type: boolean
+      title:
+        type: string
+    type: object
   model.CalendarNote:
     properties:
       content:
@@ -153,8 +164,9 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            items:
+              $ref: '#/definitions/dto.AnnouncementResponse'
+            type: array
         "500":
           description: Internal Server Error
           schema:

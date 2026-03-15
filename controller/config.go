@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/zHElEARN/go-csust-planet/config"
+	"github.com/zHElEARN/go-csust-planet/dto"
 	"github.com/zHElEARN/go-csust-planet/model"
 	"github.com/zHElEARN/go-csust-planet/utils/response"
 )
@@ -15,7 +16,7 @@ import (
 // @Description  获取当前生效的公告列表，按创建时间倒序排列
 // @Tags         config
 // @Produce      json
-// @Success      200  {object}  map[string]interface{}
+// @Success      200  {array}   dto.AnnouncementResponse
 // @Failure      500  {object}  map[string]interface{}
 // @Router       /config/announcements [get]
 func GetAnnouncements(c *gin.Context) {
@@ -25,7 +26,8 @@ func GetAnnouncements(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, announcements)
+	res := dto.MapAnnouncements(announcements)
+	c.JSON(http.StatusOK, res)
 }
 
 // GetCampusMap godoc
