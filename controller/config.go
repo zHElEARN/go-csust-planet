@@ -49,22 +49,18 @@ func GetCampusMap(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-type appVersionsRequest struct {
-	Platform string `form:"platform" binding:"required,oneof=ios android"`
-}
-
 // GetAppVersions godoc
 // @Summary      获取App所有版本
 // @Description  获取指定平台的所有App版本历史
 // @Tags         config
 // @Produce      json
 // @Param        platform  query     string  true  "平台(ios或android)" Enums(ios, android)
-// @Success      200       {object}  map[string]interface{}
+// @Success      200       {array}   dto.AppVersionResponse
 // @Failure      400       {object}  map[string]interface{}
 // @Failure      500       {object}  map[string]interface{}
 // @Router       /config/app-versions [get]
 func GetAppVersions(c *gin.Context) {
-	var req appVersionsRequest
+	var req dto.AppVersionsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.ResponseError(c, http.StatusBadRequest, "无效的请求参数")
 		return
@@ -75,12 +71,9 @@ func GetAppVersions(c *gin.Context) {
 		response.ResponseError(c, http.StatusInternalServerError, "获取版本信息失败: "+err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, versions)
-}
 
-type checkVersionRequest struct {
-	Platform           string `form:"platform" binding:"required,oneof=ios android"`
-	CurrentVersionCode int    `form:"current_version_code" binding:"required"`
+	res := dto.MapAppVersions(versions)
+	c.JSON(http.StatusOK, res)
 }
 
 // CheckAppVersion godoc
@@ -89,13 +82,13 @@ type checkVersionRequest struct {
 // @Tags         config
 // @Produce      json
 // @Param        platform              query     string  true  "平台(ios或android)" Enums(ios, android)
-// @Param        current_version_code  query     int     true  "当前版本号"
-// @Success      200                   {object}  map[string]interface{}
+// @Param        currentVersionCode    query     int     true  "当前版本号"
+// @Success      200                   {object}  dto.CheckAppVersionResponse
 // @Failure      400                   {object}  map[string]interface{}
 // @Failure      500                   {object}  map[string]interface{}
 // @Router       /config/app-version/check [get]
 func CheckAppVersion(c *gin.Context) {
-	var req checkVersionRequest
+	var req dto.CheckAppVersionRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.ResponseError(c, http.StatusBadRequest, "无效的请求参数")
 		return
@@ -105,10 +98,10 @@ func CheckAppVersion(c *gin.Context) {
 	err := config.DB.Where("platform = ?", req.Platform).Order("version_code desc").First(&latestVersion).Error
 	if err != nil {
 		// 没有该平台的版本记录
-		c.JSON(http.StatusOK, gin.H{
-			"has_update":      false,
-			"is_force_update": false,
-			"latest_version":  nil,
+		c.JSON(http.StatusOK, dto.CheckAppVersionResponse{
+			HasUpdate:     false,
+			IsForceUpdate: false,
+			LatestVersion: nil,
 		})
 		return
 	}
@@ -123,10 +116,11 @@ func CheckAppVersion(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"has_update":      hasUpdate,
-		"is_force_update": isForceUpdate,
-		"latest_version":  latestVersion,
+	latestVersionDto := dto.FromAppVersionModel(latestVersion)
+	c.JSON(http.StatusOK, dto.CheckAppVersionResponse{
+		HasUpdate:     hasUpdate,
+		IsForceUpdate: isForceUpdate,
+		LatestVersion: &latestVersionDto,
 	})
 }
 

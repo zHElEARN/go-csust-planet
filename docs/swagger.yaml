@@ -67,6 +67,23 @@ definitions:
       title:
         type: string
     type: object
+  dto.AppVersionResponse:
+    properties:
+      createdAt:
+        type: string
+      downloadUrl:
+        type: string
+      isForceUpdate:
+        type: boolean
+      platform:
+        type: string
+      releaseNotes:
+        type: string
+      versionCode:
+        type: integer
+      versionName:
+        type: string
+    type: object
   dto.CampusMapFeatureResponse:
     properties:
       geometry:
@@ -84,6 +101,15 @@ definitions:
         type: array
       type:
         type: string
+    type: object
+  dto.CheckAppVersionResponse:
+    properties:
+      hasUpdate:
+        type: boolean
+      isForceUpdate:
+        type: boolean
+      latestVersion:
+        $ref: '#/definitions/dto.AppVersionResponse'
     type: object
   model.CalendarNote:
     properties:
@@ -230,7 +256,7 @@ paths:
         type: string
       - description: 当前版本号
         in: query
-        name: current_version_code
+        name: currentVersionCode
         required: true
         type: integer
       produces:
@@ -239,8 +265,7 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.CheckAppVersionResponse'
         "400":
           description: Bad Request
           schema:
@@ -272,8 +297,9 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            items:
+              $ref: '#/definitions/dto.AppVersionResponse'
+            type: array
         "400":
           description: Bad Request
           schema:

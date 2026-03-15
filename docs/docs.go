@@ -126,7 +126,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "当前版本号",
-                        "name": "current_version_code",
+                        "name": "currentVersionCode",
                         "in": "query",
                         "required": true
                     }
@@ -135,8 +135,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/dto.CheckAppVersionResponse"
                         }
                     },
                     "400": {
@@ -183,8 +182,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.AppVersionResponse"
+                            }
                         }
                     },
                     "400": {
@@ -642,6 +643,32 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.AppVersionResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "downloadUrl": {
+                    "type": "string"
+                },
+                "isForceUpdate": {
+                    "type": "boolean"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "releaseNotes": {
+                    "type": "string"
+                },
+                "versionCode": {
+                    "type": "integer"
+                },
+                "versionName": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CampusMapFeatureResponse": {
             "type": "object",
             "properties": {
@@ -667,6 +694,20 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.CheckAppVersionResponse": {
+            "type": "object",
+            "properties": {
+                "hasUpdate": {
+                    "type": "boolean"
+                },
+                "isForceUpdate": {
+                    "type": "boolean"
+                },
+                "latestVersion": {
+                    "$ref": "#/definitions/dto.AppVersionResponse"
                 }
             }
         },
