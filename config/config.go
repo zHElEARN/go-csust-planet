@@ -22,6 +22,7 @@ type Config struct {
 	APNSEnvironment    string
 	APNSBundleID       string
 	AppMode            string
+	Port               string
 }
 
 var AppConfig *Config
@@ -47,6 +48,7 @@ func InitConfig() {
 		APNSEnvironment:    getEnvOrFatal("APNS_ENVIRONMENT"),
 		APNSBundleID:       getEnvOrFatal("APNS_BUNDLE_ID"),
 		AppMode:            getEnvOrDefault("APP_MODE", "development"),
+		Port:               getEnvOrDefault("PORT", "7241"),
 	}
 }
 

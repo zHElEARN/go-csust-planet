@@ -23,7 +23,7 @@ func main() {
 
 	r := router.SetupRouter()
 
-	err := r.Run(":8080")
+	err := r.Run(":" + config.AppConfig.Port)
 	if err != nil {
 		log.Fatalf("服务器启动失败: %v", err)
 	}
