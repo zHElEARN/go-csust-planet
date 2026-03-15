@@ -37,6 +37,7 @@ func autoMigrate(db *gorm.DB) {
 		&model.Announcement{},
 		&model.CampusMapFeature{},
 		&model.AppVersion{},
+		&model.SemesterCalendar{},
 	)
 	if err != nil {
 		log.Fatalf("数据库自动迁移失败: %v", err)
