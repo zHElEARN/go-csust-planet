@@ -24,8 +24,8 @@ import (
 // @Produce      json
 // @Param        request  body      dto.SyncElectricityTaskRequest  true  "任务请求内容"
 // @Success      204      "成功，无返回内容"
-// @Failure      400      {object}  map[string]interface{}
-// @Failure      500      {object}  map[string]interface{}
+// @Failure      400      {object}  dto.ErrorResponse
+// @Failure      500      {object}  dto.ErrorResponse
 // @Router       /task/electricity [post]
 // @Security     BearerAuth
 func SyncElectricityTask(c *gin.Context) {

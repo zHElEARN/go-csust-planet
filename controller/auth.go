@@ -24,9 +24,9 @@ import (
 // @Produce      json
 // @Param        request  body      dto.LoginRequest  true  "登录请求，需包含获取的token"
 // @Success      200      {object}  dto.LoginResponse
-// @Failure      400      {object}  map[string]interface{}
-// @Failure      401      {object}  map[string]interface{}
-// @Failure      500      {object}  map[string]interface{}
+// @Failure      400      {object}  dto.ErrorResponse
+// @Failure      401      {object}  dto.ErrorResponse
+// @Failure      500      {object}  dto.ErrorResponse
 // @Router       /auth/login [post]
 func Login(c *gin.Context) {
 	var req dto.LoginRequest

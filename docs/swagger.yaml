@@ -84,6 +84,11 @@ definitions:
     - notifyTime
     - room
     type: object
+  dto.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
   dto.LoginRequest:
     properties:
       token:
@@ -246,18 +251,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: 用户登录
       tags:
       - auth
@@ -276,8 +278,7 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: 获取公告列表
       tags:
       - config
@@ -305,13 +306,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: 获取App所有版本
       tags:
       - config
@@ -342,13 +341,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: 检查App版本更新
       tags:
       - config
@@ -365,8 +362,7 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: 获取校园地图数据
       tags:
       - config
@@ -385,8 +381,7 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: 获取校历列表
       tags:
       - config
@@ -409,13 +404,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: 获取校历详情
       tags:
       - config
@@ -439,13 +432,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: 同步电费推送任务
@@ -481,18 +472,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: 查询电费余额
       tags:
       - util
@@ -531,13 +519,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: 获取用户个人信息
       tags:
       - util
@@ -564,13 +550,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: 发送APNS推送消息
       tags:
       - util

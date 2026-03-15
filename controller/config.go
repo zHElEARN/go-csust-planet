@@ -17,7 +17,7 @@ import (
 // @Tags         config
 // @Produce      json
 // @Success      200  {array}   dto.AnnouncementResponse
-// @Failure      500  {object}  map[string]interface{}
+// @Failure      500  {object}  dto.ErrorResponse
 // @Router       /config/announcements [get]
 func GetAnnouncements(c *gin.Context) {
 	var announcements []model.Announcement
@@ -36,7 +36,7 @@ func GetAnnouncements(c *gin.Context) {
 // @Tags         config
 // @Produce      json
 // @Success      200  {object}  dto.CampusMapResponse
-// @Failure      500  {object}  map[string]interface{}
+// @Failure      500  {object}  dto.ErrorResponse
 // @Router       /config/campus-map [get]
 func GetCampusMap(c *gin.Context) {
 	var features []model.CampusMapFeature
@@ -56,8 +56,8 @@ func GetCampusMap(c *gin.Context) {
 // @Produce      json
 // @Param        platform  query     string  true  "平台(ios或android)" Enums(ios, android)
 // @Success      200       {array}   dto.AppVersionResponse
-// @Failure      400       {object}  map[string]interface{}
-// @Failure      500       {object}  map[string]interface{}
+// @Failure      400       {object}  dto.ErrorResponse
+// @Failure      500       {object}  dto.ErrorResponse
 // @Router       /config/app-versions [get]
 func GetAppVersions(c *gin.Context) {
 	var req dto.AppVersionsRequest
@@ -84,8 +84,8 @@ func GetAppVersions(c *gin.Context) {
 // @Param        platform              query     string  true  "平台(ios或android)" Enums(ios, android)
 // @Param        currentVersionCode    query     int     true  "当前版本号"
 // @Success      200                   {object}  dto.CheckAppVersionResponse
-// @Failure      400                   {object}  map[string]interface{}
-// @Failure      500                   {object}  map[string]interface{}
+// @Failure      400                   {object}  dto.ErrorResponse
+// @Failure      500                   {object}  dto.ErrorResponse
 // @Router       /config/app-versions/check [get]
 func CheckAppVersion(c *gin.Context) {
 	var req dto.CheckAppVersionRequest
@@ -130,7 +130,7 @@ func CheckAppVersion(c *gin.Context) {
 // @Tags         config
 // @Produce      json
 // @Success      200  {array}   dto.SemesterCalendarListResponse
-// @Failure      500  {object}  map[string]interface{}
+// @Failure      500  {object}  dto.ErrorResponse
 // @Router       /config/semester-calendars [get]
 func GetSemesterCalendars(c *gin.Context) {
 	var calendars []model.SemesterCalendar
@@ -150,8 +150,8 @@ func GetSemesterCalendars(c *gin.Context) {
 // @Produce      json
 // @Param        semester_code path     string  true  "学期代码(如: 2024-2025-1)"
 // @Success      200           {object} dto.SemesterCalendarDetailResponse
-// @Failure      400           {object} map[string]interface{}
-// @Failure      404           {object} map[string]interface{}
+// @Failure      400           {object} dto.ErrorResponse
+// @Failure      404           {object} dto.ErrorResponse
 // @Router       /config/semester-calendars/{semester_code} [get]
 func GetSemesterCalendarDetail(c *gin.Context) {
 	semesterCode := c.Param("semester_code")

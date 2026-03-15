@@ -43,9 +43,9 @@ func Hello(c *gin.Context) {
 // @Param        building  query     string  true  "楼栋名称"
 // @Param        room      query     string  true  "房间号"
 // @Success      200       {object}  map[string]interface{}
-// @Failure      400       {object}  map[string]interface{}
-// @Failure      404       {object}  map[string]interface{}
-// @Failure      500       {object}  map[string]interface{}
+// @Failure      400       {object}  dto.ErrorResponse
+// @Failure      404       {object}  dto.ErrorResponse
+// @Failure      500       {object}  dto.ErrorResponse
 // @Router       /util/electricity [get]
 func Electricity(c *gin.Context) {
 	campusName := c.Query("campus")
@@ -115,8 +115,8 @@ func Electricity(c *gin.Context) {
 // @Produce      json
 // @Param        token  query     string  true  "用户Token"
 // @Success      200    {object}  map[string]interface{}
-// @Failure      400    {object}  map[string]interface{}
-// @Failure      500    {object}  map[string]interface{}
+// @Failure      400    {object}  dto.ErrorResponse
+// @Failure      500    {object}  dto.ErrorResponse
 // @Router       /util/profile [get]
 func Profile(c *gin.Context) {
 	token := c.Query("token")
@@ -142,8 +142,8 @@ func Profile(c *gin.Context) {
 // @Produce      json
 // @Param        request  body      pushRequest  true  "推送请求内容"
 // @Success      200      {object}  map[string]interface{}
-// @Failure      400      {object}  map[string]interface{}
-// @Failure      500      {object}  map[string]interface{}
+// @Failure      400      {object}  dto.ErrorResponse
+// @Failure      500      {object}  dto.ErrorResponse
 // @Router       /util/push [post]
 func Push(c *gin.Context) {
 	var req pushRequest
