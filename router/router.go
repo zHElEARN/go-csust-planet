@@ -48,6 +48,8 @@ func SetupRouter() *gin.Engine {
 		configGroup.GET("/campus-map", controller.GetCampusMap)
 		configGroup.GET("/app-versions", controller.GetAppVersions)
 		configGroup.GET("/app-version/check", controller.CheckAppVersion)
+		configGroup.GET("/semester-calendars", controller.GetSemesterCalendars)
+		configGroup.GET("/semester-calendars/:semester_code", controller.GetSemesterCalendarDetail)
 	}
 
 	r.NoRoute(controller.HandleNotFound)

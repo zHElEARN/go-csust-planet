@@ -29,7 +29,7 @@ func GenerateToken(userID uuid.UUID, duration time.Duration) (string, error) {
 
 // ParseToken 解析并验证 JWT 令牌
 func ParseToken(tokenString string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (any, error) {
 		return []byte(config.AppConfig.JWTSecret), nil
 	})
 

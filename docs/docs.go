@@ -230,6 +230,79 @@ const docTemplate = `{
                 }
             }
         },
+        "/config/semester-calendars": {
+            "get": {
+                "description": "获取所有校历的列表，按学期代码倒序排列",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "获取校历列表",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/controller.SemesterCalendarListResp"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/config/semester-calendars/{semester_code}": {
+            "get": {
+                "description": "根据学期代码获取该学期的详细校历信息",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "获取校历详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "学期代码(如: 2024-2025-1)",
+                        "name": "semester_code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.SemesterCalendar"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/task/electricity": {
             "post": {
                 "security": [
@@ -467,6 +540,20 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "controller.SemesterCalendarListResp": {
+            "type": "object",
+            "properties": {
+                "semesterCode": {
+                    "type": "string"
+                },
+                "subtitle": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "controller.electricityTaskOption": {
             "type": "object",
             "required": [
@@ -534,6 +621,72 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/controller.electricityTaskOption"
                     }
+                }
+            }
+        },
+        "model.CalendarNote": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "needNumber": {
+                    "type": "boolean"
+                },
+                "row": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.CustomWeekRange": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "endRow": {
+                    "type": "integer"
+                },
+                "startRow": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.SemesterCalendar": {
+            "type": "object",
+            "properties": {
+                "calendarEnd": {
+                    "type": "string"
+                },
+                "calendarStart": {
+                    "type": "string"
+                },
+                "customWeekRanges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.CustomWeekRange"
+                    }
+                },
+                "notes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.CalendarNote"
+                    }
+                },
+                "semesterCode": {
+                    "type": "string"
+                },
+                "semesterEnd": {
+                    "type": "string"
+                },
+                "semesterStart": {
+                    "type": "string"
+                },
+                "subtitle": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         }

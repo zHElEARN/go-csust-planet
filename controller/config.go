@@ -43,9 +43,9 @@ func GetCampusMap(c *gin.Context) {
 		return
 	}
 
-	geoJsonFeatures := make([]map[string]interface{}, 0, len(features))
+	geoJsonFeatures := make([]map[string]any, 0, len(features))
 	for _, f := range features {
-		geoJsonFeatures = append(geoJsonFeatures, map[string]interface{}{
+		geoJsonFeatures = append(geoJsonFeatures, map[string]any{
 			"type":       f.Type,
 			"properties": f.Properties,
 			"geometry":   f.Geometry,
@@ -137,4 +137,63 @@ func CheckAppVersion(c *gin.Context) {
 		"is_force_update": isForceUpdate,
 		"latest_version":  latestVersion,
 	})
+}
+
+type SemesterCalendarListResp struct {
+	SemesterCode string `json:"semesterCode"`
+	Title        string `json:"title"`
+	Subtitle     string `json:"subtitle"`
+}
+
+// GetSemesterCalendars godoc
+// @Summary      获取校历列表
+// @Description  获取所有校历的列表，按学期代码倒序排列
+// @Tags         config
+// @Produce      json
+// @Success      200  {array}   SemesterCalendarListResp
+// @Failure      500  {object}  map[string]interface{}
+// @Router       /config/semester-calendars [get]
+func GetSemesterCalendars(c *gin.Context) {
+	var calendars []model.SemesterCalendar
+	if err := config.DB.Select("semester_code", "title", "subtitle").Order("semester_code desc").Find(&calendars).Error; err != nil {
+		response.ResponseError(c, http.StatusInternalServerError, "获取校历列表失败: "+err.Error())
+		return
+	}
+
+	resp := make([]SemesterCalendarListResp, 0, len(calendars))
+	for _, cal := range calendars {
+		resp = append(resp, SemesterCalendarListResp{
+			SemesterCode: cal.SemesterCode,
+			Title:        cal.Title,
+			Subtitle:     cal.Subtitle,
+		})
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+// GetSemesterCalendarDetail godoc
+// @Summary      获取校历详情
+// @Description  根据学期代码获取该学期的详细校历信息
+// @Tags         config
+// @Produce      json
+// @Param        semester_code path     string  true  "学期代码(如: 2024-2025-1)"
+// @Success      200           {object} model.SemesterCalendar
+// @Failure      400           {object} map[string]interface{}
+// @Failure      404           {object} map[string]interface{}
+// @Router       /config/semester-calendars/{semester_code} [get]
+func GetSemesterCalendarDetail(c *gin.Context) {
+	semesterCode := c.Param("semester_code")
+	if semesterCode == "" {
+		response.ResponseError(c, http.StatusBadRequest, "学期代码不能为空")
+		return
+	}
+
+	var calendar model.SemesterCalendar
+	if err := config.DB.Where("semester_code = ?", semesterCode).First(&calendar).Error; err != nil {
+		response.ResponseError(c, http.StatusNotFound, "未找到该校历信息: "+err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, calendar)
 }
