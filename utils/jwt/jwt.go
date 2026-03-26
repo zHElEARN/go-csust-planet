@@ -10,12 +10,14 @@ import (
 )
 
 type Claims struct {
+	StudentID string `json:"student_id"`
 	jwt.RegisteredClaims
 }
 
 // GenerateToken 生成 JWT 令牌
-func GenerateToken(userID uuid.UUID, duration time.Duration) (string, error) {
+func GenerateToken(userID uuid.UUID, studentID string, duration time.Duration) (string, error) {
 	claims := Claims{
+		StudentID: studentID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   userID.String(),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),

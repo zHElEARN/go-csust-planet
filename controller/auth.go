@@ -63,7 +63,7 @@ func Login(c *gin.Context) {
 	}
 
 	// 生成 JWT
-	jwtToken, err := jwt.GenerateToken(user.ID, 30*24*time.Hour)
+	jwtToken, err := jwt.GenerateToken(user.ID, profile.UserAccount, 30*24*time.Hour)
 	if err != nil {
 		response.ResponseError(c, http.StatusInternalServerError, "生成令牌失败: "+err.Error())
 		return
