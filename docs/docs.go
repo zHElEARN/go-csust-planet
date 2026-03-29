@@ -351,6 +351,9 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "string"
+                },
                 "isBanner": {
                     "type": "boolean"
                 },
