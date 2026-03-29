@@ -7,6 +7,7 @@ import (
 )
 
 type AnnouncementResponse struct {
+	ID        string    `json:"id"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
 	IsBanner  bool      `json:"isBanner"`
@@ -15,6 +16,7 @@ type AnnouncementResponse struct {
 
 func FromAnnouncementModel(a model.Announcement) AnnouncementResponse {
 	return AnnouncementResponse{
+		ID:        a.ID.String(),
 		Title:     a.Title,
 		Content:   a.Content,
 		IsBanner:  a.IsBanner,
