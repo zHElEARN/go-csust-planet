@@ -21,9 +21,6 @@ const (
 	ZombieTaskThreshold = 1 * time.Minute  // 僵尸任务判定阈值（停留在 processing 超过此时间将被重置）
 	BatchSizeLimit      = 100              // 每次数据库拉取的最大任务批次数量
 	TaskTimeout         = 30 * time.Second // 单个任务的绝对超时时间
-
-	PreloadMaxRetries = 3               // 预加载数据的最大重试次数
-	PreloadRetryDelay = 2 * time.Second // 预加载失败后的重试间隔时间
 )
 
 // 任务状态常量
@@ -37,67 +34,15 @@ type TaskWithToken struct {
 	Token string `gorm:"column:device_token"`
 }
 
-var buildingCache map[string]map[string]*campuscard.Building
-
-// 预热楼栋缓存
-func preloadBuildings() error {
-	buildingCache = make(map[string]map[string]*campuscard.Building)
-
-	campuses := map[string]campuscard.Campus{
-		"云塘":  campuscard.CampusYuntang,
-		"金盆岭": campuscard.CampusJinpenling,
-	}
-
-	for campusName, campusEnum := range campuses {
-		var buildings []campuscard.Building
-		var err error
-
-		// 重试机制：针对单个校区的接口请求进行最多 PreloadMaxRetries 次重试
-		for attempt := 1; attempt <= PreloadMaxRetries; attempt++ {
-			buildings, err = campuscard.GetBuildings(campusEnum)
-			if err == nil {
-				break
-			}
-
-			log.Printf("[%s]校区楼栋获取失败 (尝试 %d/%d): %v\n", campusName, attempt, PreloadMaxRetries, err)
-
-			// 如果还未达到最大重试次数，则休眠一段时间后再次尝试
-			if attempt < PreloadMaxRetries {
-				time.Sleep(PreloadRetryDelay)
-			}
-		}
-
-		// 如果重试后仍然失败，向上层抛出错误
-		if err != nil {
-			return fmt.Errorf("加载[%s]校区楼栋失败(已重试%d次): %w", campusName, PreloadMaxRetries, err)
-		}
-
-		campusMap := make(map[string]*campuscard.Building)
-		for i := range buildings {
-			// 将楼栋存入 map 中实现 O(1) 查找
-			campusMap[buildings[i].Name] = &buildings[i]
-		}
-		buildingCache[campusName] = campusMap
-		log.Printf("[%s]校区楼栋预加载完成，共计 %d 栋\n", campusName, len(buildings))
-	}
-
-	return nil
-}
-
 // 真实的电量查询包装函数
 func fetchRealElectricity(campusName, buildingName, roomNum string) (string, error) {
-	campusMap, ok := buildingCache[campusName]
-	if !ok {
-		return "", fmt.Errorf("未知的校区: %s", campusName)
-	}
-
-	targetBuilding, ok := campusMap[buildingName]
-	if !ok {
-		return "", fmt.Errorf("在 %s 未找到楼栋: %s", campusName, buildingName)
+	targetBuilding, err := campuscard.GetBuildingByCampusName(campusName, buildingName)
+	if err != nil {
+		return "", err
 	}
 
 	// 调用底层接口查询电量
-	balance, err := campuscard.GetElectricity(*targetBuilding, roomNum)
+	balance, err := campuscard.GetElectricity(targetBuilding, roomNum)
 	if err != nil {
 		return "", err
 	}
@@ -106,11 +51,6 @@ func fetchRealElectricity(campusName, buildingName, roomNum string) (string, err
 }
 
 func StartElectricityPushWorker() {
-	log.Println("正在初始化电费推送 Worker，预加载楼栋数据...")
-	if err := preloadBuildings(); err != nil {
-		log.Fatalf("Worker启动失败，无法预加载楼栋数据: %v", err)
-	}
-
 	go func() {
 		ticker := time.NewTicker(WorkerTickInterval)
 		defer ticker.Stop()
