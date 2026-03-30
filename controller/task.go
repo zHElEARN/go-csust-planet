@@ -13,6 +13,7 @@ import (
 	"github.com/zHElEARN/go-csust-planet/config"
 	"github.com/zHElEARN/go-csust-planet/dto"
 	"github.com/zHElEARN/go-csust-planet/model"
+	"github.com/zHElEARN/go-csust-planet/utils/campuscard"
 	"github.com/zHElEARN/go-csust-planet/utils/response"
 )
 
@@ -45,6 +46,13 @@ func SyncElectricityTask(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ResponseError(c, http.StatusBadRequest, "无效请求参数: "+err.Error())
 		return
+	}
+
+	for _, task := range req.Tasks {
+		if _, err := campuscard.GetBuildingByCampusName(task.Campus, task.Building); err != nil {
+			response.ResponseError(c, http.StatusBadRequest, "无效的校区或楼栋: "+err.Error())
+			return
+		}
 	}
 
 	// 开启事务
