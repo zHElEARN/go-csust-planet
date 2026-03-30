@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -183,6 +184,14 @@ func processSingleTask(task TaskWithToken, batchStartTime time.Time) bool {
 	// 根据执行结果处理数据库状态
 	if taskErr != nil {
 		log.Printf("任务 %v 执行失败: %v\n", task.ID, taskErr)
+
+		if errors.Is(taskErr, campuscard.ErrRoomNotFound) {
+			log.Printf("任务 %v 对应房间不存在，正在删除该任务记录\n", task.ID)
+			if err := config.DB.Delete(&model.ElectricityTask{}, "id = ?", task.ID).Error; err != nil {
+				log.Printf("删除房间不存在的任务 %v 失败: %v\n", task.ID, err)
+			}
+			return false
+		}
 
 		reason := taskErr.Error()
 		// 识别 APNs 明确告知设备失效的错误

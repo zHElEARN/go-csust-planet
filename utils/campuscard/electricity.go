@@ -2,6 +2,7 @@ package campuscard
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +12,8 @@ import (
 )
 
 const BaseURL = "http://yktwd.csust.edu.cn:8988/web/Common/Tsm.html"
+
+var ErrRoomNotFound = errors.New("无法获取房间信息")
 
 type Campus struct {
 	ID          string
@@ -75,7 +78,8 @@ type buildingResp struct {
 
 type roomResp struct {
 	QueryElecRoomInfo struct {
-		ErrMsg string `json:"errmsg"`
+		RetCode string `json:"retcode"`
+		ErrMsg  string `json:"errmsg"`
 	} `json:"query_elec_roominfo"`
 }
 
@@ -112,6 +116,13 @@ func GetElectricity(b Building, roomNum string) (float64, error) {
 	}
 
 	return request(req, "synjones.onecard.query.elec.roominfo", func(resp roomResp) (float64, error) {
+		if resp.QueryElecRoomInfo.RetCode == "60037" && resp.QueryElecRoomInfo.ErrMsg == ErrRoomNotFound.Error() {
+			return 0, ErrRoomNotFound
+		}
+		if resp.QueryElecRoomInfo.RetCode != "" && resp.QueryElecRoomInfo.RetCode != "0" {
+			return 0, fmt.Errorf("查询电量失败(retcode=%s): %s", resp.QueryElecRoomInfo.RetCode, resp.QueryElecRoomInfo.ErrMsg)
+		}
+
 		re := regexp.MustCompile(`(\d+(\.\d+)?)`)
 		match := re.FindString(resp.QueryElecRoomInfo.ErrMsg)
 		if match == "" {
