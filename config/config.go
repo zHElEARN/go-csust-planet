@@ -23,6 +23,7 @@ type Config struct {
 	APNSBundleID       string
 	AppMode            string
 	Port               string
+	SwaggerPassword    string
 }
 
 var AppConfig *Config
@@ -49,6 +50,7 @@ func InitConfig() {
 		APNSBundleID:       getEnvOrFatal("APNS_BUNDLE_ID"),
 		AppMode:            getEnvOrDefault("APP_MODE", "development"),
 		Port:               getEnvOrDefault("PORT", "7241"),
+		SwaggerPassword:    getEnvOrFatal("SWAGGER_PASSWORD"),
 	}
 }
 

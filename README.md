@@ -45,6 +45,11 @@
    - 数据库连接信息 (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` 等)
    - JWT 密钥 (`JWT_SECRET`)
    - APNs 凭据信息 (`APNS_TEAM_IDENTIFIER`, `APNS_KEY_IDENTIFIER`, `APNS_PRIVATE_KEY_PATH` 等)
+   - Swagger 文档访问密码 (`SWAGGER_PASSWORD`)
+
+   Swagger 文档会始终保持开启，访问地址为 `/swagger/index.html`，并使用 Basic Auth 保护：
+   - 用户名固定为 `swagger`
+   - 密码来自环境变量 `SWAGGER_PASSWORD`
 
 4. 运行项目
 

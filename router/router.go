@@ -23,10 +23,10 @@ func SetupRouter() *gin.Engine {
 
 	v1 := r.Group("/v1")
 
-	// 仅开发模式下启用
-	if config.AppConfig.AppMode != "production" {
-		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	}
+	swaggerGroup := r.Group("/swagger", gin.BasicAuth(gin.Accounts{
+		"swagger": config.AppConfig.SwaggerPassword,
+	}))
+	swaggerGroup.GET("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	taskGroup := v1.Group("/task")
 	taskGroup.Use(middleware.AuthMiddleware())
