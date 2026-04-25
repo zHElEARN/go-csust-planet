@@ -4,8 +4,10 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 
 	"github.com/zHElEARN/go-csust-planet/dto"
@@ -89,13 +91,27 @@ func (h *Handler) CreateAnnouncement(c *gin.Context) {
 	}
 
 	announcement := model.Announcement{
-		Title:    req.Title,
-		Content:  req.Content,
-		IsActive: *req.IsActive,
-		IsBanner: *req.IsBanner,
+		ID:        uuid.New(),
+		Title:     req.Title,
+		Content:   req.Content,
+		IsActive:  *req.IsActive,
+		IsBanner:  *req.IsBanner,
+		CreatedAt: time.Now().UTC(),
 	}
-	if err := h.db.Create(&announcement).Error; err != nil {
+	if err := h.db.Model(&model.Announcement{}).Create(map[string]any{
+		"id":         announcement.ID,
+		"title":      announcement.Title,
+		"content":    announcement.Content,
+		"is_active":  announcement.IsActive,
+		"is_banner":  announcement.IsBanner,
+		"created_at": announcement.CreatedAt,
+	}).Error; err != nil {
 		log.Printf("[ERROR] 创建公告失败: %v", err)
+		response.ResponseError(c, http.StatusInternalServerError, "创建公告失败")
+		return
+	}
+	if err := h.db.First(&announcement, "id = ?", announcement.ID).Error; err != nil {
+		log.Printf("[ERROR] 查询新建公告失败 id=%s: %v", announcement.ID, err)
 		response.ResponseError(c, http.StatusInternalServerError, "创建公告失败")
 		return
 	}

@@ -58,6 +58,7 @@ func newAdminTestRouterWithCleanup(t *testing.T, useTransaction bool) (*gin.Engi
 	if err := config.AutoMigrate(db); err != nil {
 		t.Fatalf("failed to migrate test database: %v", err)
 	}
+	resetRouterTestTables(t, db)
 
 	testDB := db
 	if useTransaction {
@@ -132,6 +133,17 @@ func openTestDB(t *testing.T) *gorm.DB {
 
 	return db
 }
+
+func resetRouterTestTables(t *testing.T, db *gorm.DB) {
+	t.Helper()
+
+	if err := db.Exec(
+		"TRUNCATE TABLE announcements, app_versions, semester_calendars, campus_map_features RESTART IDENTITY CASCADE",
+	).Error; err != nil {
+		t.Fatalf("failed to reset router test tables: %v", err)
+	}
+}
+
 func performRequest(t *testing.T, r *gin.Engine, method, path string, body any, adminToken string) *httptest.ResponseRecorder {
 	t.Helper()
 

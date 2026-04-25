@@ -394,8 +394,26 @@ func TestConfigSemesterCalendarsListAndDetail(t *testing.T) {
 func createTestAnnouncement(t *testing.T, announcement model.Announcement) model.Announcement {
 	t.Helper()
 
-	if err := config.DB.Create(&announcement).Error; err != nil {
+	if announcement.ID == uuid.Nil {
+		announcement.ID = uuid.New()
+	}
+
+	values := map[string]any{
+		"id":        announcement.ID,
+		"title":     announcement.Title,
+		"content":   announcement.Content,
+		"is_active": announcement.IsActive,
+		"is_banner": announcement.IsBanner,
+	}
+	if !announcement.CreatedAt.IsZero() {
+		values["created_at"] = announcement.CreatedAt
+	}
+
+	if err := config.DB.Model(&model.Announcement{}).Create(values).Error; err != nil {
 		t.Fatalf("failed to create test announcement: %v", err)
+	}
+	if err := config.DB.First(&announcement, "id = ?", announcement.ID).Error; err != nil {
+		t.Fatalf("failed to reload test announcement: %v", err)
 	}
 
 	return announcement
