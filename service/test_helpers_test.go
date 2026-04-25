@@ -2,30 +2,16 @@ package service
 
 import (
 	"fmt"
-	"os"
-	"sync"
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"github.com/zHElEARN/go-csust-planet/config"
 	"github.com/zHElEARN/go-csust-planet/model"
+	"github.com/zHElEARN/go-csust-planet/testsupport"
 )
-
-type serviceTestDBConfig struct {
-	host     string
-	port     string
-	user     string
-	password string
-	name     string
-	sslMode  string
-	timeZone string
-}
-
-var loadServiceTestEnvOnce sync.Once
 
 func openServiceTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
@@ -42,14 +28,14 @@ func openPersistentServiceTestDB(t *testing.T) *gorm.DB {
 func openServiceTestDBWithCleanup(t *testing.T, useTransaction bool) *gorm.DB {
 	t.Helper()
 
-	cfg, ok := loadServiceTestDBConfig()
+	cfg, ok := testsupport.LoadTestDBConfig()
 	if !ok {
 		t.Skip("skipping PostgreSQL service test: set TEST_DB_HOST/TEST_DB_PORT/TEST_DB_USER/TEST_DB_PASSWORD/TEST_DB_NAME")
 	}
 
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
-		cfg.host, cfg.user, cfg.password, cfg.name, cfg.port, cfg.sslMode, cfg.timeZone,
+		cfg.Host, cfg.User, cfg.Password, cfg.Name, cfg.Port, cfg.SSLMode, cfg.TimeZone,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -86,42 +72,6 @@ func openServiceTestDBWithCleanup(t *testing.T, useTransaction bool) *gorm.DB {
 
 	return tx
 }
-
-func loadServiceTestDBConfig() (serviceTestDBConfig, bool) {
-	loadServiceTestEnvOnce.Do(func() {
-		_ = godotenv.Load(".env")
-	})
-
-	host := os.Getenv("TEST_DB_HOST")
-	port := os.Getenv("TEST_DB_PORT")
-	user := os.Getenv("TEST_DB_USER")
-	password := os.Getenv("TEST_DB_PASSWORD")
-	name := os.Getenv("TEST_DB_NAME")
-	if host == "" || port == "" || user == "" || password == "" || name == "" {
-		return serviceTestDBConfig{}, false
-	}
-
-	sslMode := os.Getenv("TEST_DB_SSLMODE")
-	if sslMode == "" {
-		sslMode = "disable"
-	}
-
-	timeZone := os.Getenv("TEST_DB_TIMEZONE")
-	if timeZone == "" {
-		timeZone = "Asia/Shanghai"
-	}
-
-	return serviceTestDBConfig{
-		host:     host,
-		port:     port,
-		user:     user,
-		password: password,
-		name:     name,
-		sslMode:  sslMode,
-		timeZone: timeZone,
-	}, true
-}
-
 func createServiceTestUser(t *testing.T, db *gorm.DB, studentID string) model.User {
 	t.Helper()
 

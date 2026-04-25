@@ -6,13 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http/httptest"
-	"os"
-	"sync"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -20,21 +17,10 @@ import (
 	"github.com/zHElEARN/go-csust-planet/controller"
 	"github.com/zHElEARN/go-csust-planet/dto"
 	"github.com/zHElEARN/go-csust-planet/service"
+	"github.com/zHElEARN/go-csust-planet/testsupport"
 )
 
 const testAdminToken = "admin-test-token"
-
-type testDBConfig struct {
-	host     string
-	port     string
-	user     string
-	password string
-	name     string
-	sslMode  string
-	timeZone string
-}
-
-var loadTestEnvOnce sync.Once
 
 type stubAuthService struct{}
 
@@ -121,14 +107,14 @@ func newAdminTestRouterWithCleanup(t *testing.T, useTransaction bool) (*gin.Engi
 func openTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	cfg, ok := loadTestDBConfig()
+	cfg, ok := testsupport.LoadTestDBConfig()
 	if !ok {
 		t.Skip("skipping PostgreSQL integration test: set TEST_DB_HOST/TEST_DB_PORT/TEST_DB_USER/TEST_DB_PASSWORD/TEST_DB_NAME")
 	}
 
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
-		cfg.host, cfg.user, cfg.password, cfg.name, cfg.port, cfg.sslMode, cfg.timeZone,
+		cfg.Host, cfg.User, cfg.Password, cfg.Name, cfg.Port, cfg.SSLMode, cfg.TimeZone,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -146,42 +132,6 @@ func openTestDB(t *testing.T) *gorm.DB {
 
 	return db
 }
-
-func loadTestDBConfig() (testDBConfig, bool) {
-	loadTestEnvOnce.Do(func() {
-		_ = godotenv.Load(".env")
-	})
-
-	host := os.Getenv("TEST_DB_HOST")
-	port := os.Getenv("TEST_DB_PORT")
-	user := os.Getenv("TEST_DB_USER")
-	password := os.Getenv("TEST_DB_PASSWORD")
-	name := os.Getenv("TEST_DB_NAME")
-	if host == "" || port == "" || user == "" || password == "" || name == "" {
-		return testDBConfig{}, false
-	}
-
-	sslMode := os.Getenv("TEST_DB_SSLMODE")
-	if sslMode == "" {
-		sslMode = "disable"
-	}
-
-	timeZone := os.Getenv("TEST_DB_TIMEZONE")
-	if timeZone == "" {
-		timeZone = "Asia/Shanghai"
-	}
-
-	return testDBConfig{
-		host:     host,
-		port:     port,
-		user:     user,
-		password: password,
-		name:     name,
-		sslMode:  sslMode,
-		timeZone: timeZone,
-	}, true
-}
-
 func performRequest(t *testing.T, r *gin.Engine, method, path string, body any, adminToken string) *httptest.ResponseRecorder {
 	t.Helper()
 
