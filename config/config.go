@@ -16,6 +16,7 @@ type Config struct {
 	DBSSLMode          string
 	DBTimeZone         string
 	JWTSecret          string
+	AdminBearerToken   string
 	APNSTeamIdentifier string
 	APNSKeyIdentifier  string
 	APNSPrivateKeyPath string
@@ -43,6 +44,7 @@ func InitConfig() {
 		DBSSLMode:          getEnvOrFatal("DB_SSLMODE"),
 		DBTimeZone:         getEnvOrFatal("DB_TIMEZONE"),
 		JWTSecret:          getEnvOrFatal("JWT_SECRET"),
+		AdminBearerToken:   getEnvOrFatal("ADMIN_BEARER_TOKEN"),
 		APNSTeamIdentifier: getEnvOrFatal("APNS_TEAM_IDENTIFIER"),
 		APNSKeyIdentifier:  getEnvOrFatal("APNS_KEY_IDENTIFIER"),
 		APNSPrivateKeyPath: getEnvOrFatal("APNS_PRIVATE_KEY_PATH"),

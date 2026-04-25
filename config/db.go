@@ -40,11 +40,14 @@ func InitDB() {
 	DB = db
 	log.Println("[INFO] PostgreSQL 数据库连接成功")
 
-	autoMigrate(db)
+	if err := AutoMigrate(db); err != nil {
+		log.Fatalf("[FATAL] 数据库自动迁移失败: %v", err)
+	}
+	log.Println("[INFO] 数据库自动迁移完成")
 }
 
-func autoMigrate(db *gorm.DB) {
-	err := db.AutoMigrate(
+func AutoMigrate(db *gorm.DB) error {
+	return db.AutoMigrate(
 		&model.User{},
 		&model.DeviceToken{},
 		&model.ElectricityTask{},
@@ -53,8 +56,4 @@ func autoMigrate(db *gorm.DB) {
 		&model.AppVersion{},
 		&model.SemesterCalendar{},
 	)
-	if err != nil {
-		log.Fatalf("[FATAL] 数据库自动迁移失败: %v", err)
-	}
-	log.Println("[INFO] 数据库自动迁移完成")
 }

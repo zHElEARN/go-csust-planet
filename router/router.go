@@ -55,6 +55,22 @@ func SetupRouter() *gin.Engine {
 		configGroup.GET("/semester-calendars/:semester_code", controller.GetSemesterCalendarDetail)
 	}
 
+	adminGroup := v1.Group("/admin")
+	adminGroup.Use(middleware.AdminAuthMiddleware())
+	{
+		adminGroup.GET("/announcements", controller.GetAdminAnnouncements)
+		adminGroup.GET("/announcements/:id", controller.GetAdminAnnouncement)
+		adminGroup.POST("/announcements", controller.CreateAnnouncement)
+		adminGroup.PUT("/announcements/:id", controller.UpdateAnnouncement)
+		adminGroup.DELETE("/announcements/:id", controller.DeleteAnnouncement)
+
+		adminGroup.GET("/app-versions", controller.GetAdminAppVersions)
+		adminGroup.GET("/app-versions/:id", controller.GetAdminAppVersion)
+		adminGroup.POST("/app-versions", controller.CreateAppVersion)
+		adminGroup.PUT("/app-versions/:id", controller.UpdateAppVersion)
+		adminGroup.DELETE("/app-versions/:id", controller.DeleteAppVersion)
+	}
+
 	r.NoRoute(controller.HandleNotFound)
 
 	return r
