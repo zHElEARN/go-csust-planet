@@ -1,0 +1,10 @@
+services:
+  go-csust-planet:
+    image: go-csust-planet:latest
+    container_name: go-csust-planet
+    env_file:
+      - .env
+    ports:
+      - "7241:7241"
+    volumes:
+      - ./AuthKey_xxx.p8:/app/secrets/AuthKey_xxx.p8:ro
