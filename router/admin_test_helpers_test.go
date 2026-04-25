@@ -3,6 +3,7 @@ package router
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http/httptest"
 	"os"
@@ -10,11 +11,15 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"github.com/zHElEARN/go-csust-planet/config"
+	"github.com/zHElEARN/go-csust-planet/controller"
+	"github.com/zHElEARN/go-csust-planet/dto"
+	"github.com/zHElEARN/go-csust-planet/service"
 )
 
 const testAdminToken = "admin-test-token"
@@ -30,6 +35,18 @@ type testDBConfig struct {
 }
 
 var loadTestEnvOnce sync.Once
+
+type stubAuthService struct{}
+
+func (stubAuthService) Login(string) (dto.LoginResponse, error) {
+	return dto.LoginResponse{}, errors.New("not implemented")
+}
+
+type stubElectricityTaskService struct{}
+
+func (stubElectricityTaskService) Sync(uuid.UUID, dto.SyncElectricityTaskRequest) error {
+	return errors.New("not implemented")
+}
 
 func newAdminTestRouter(t *testing.T) *gin.Engine {
 	t.Helper()
@@ -85,8 +102,20 @@ func newAdminTestRouterWithCleanup(t *testing.T, useTransaction bool) (*gin.Engi
 		config.AppConfig = prevConfig
 	})
 
+	handler := controller.NewHandler(controller.Dependencies{
+		DB:                     testDB,
+		AuthService:            stubAuthService{},
+		ElectricityTaskService: stubElectricityTaskService{},
+		AdminAppVersionService: service.NewAdminAppVersionService(testDB),
+	})
+
 	gin.SetMode(gin.TestMode)
-	return SetupRouter(), db
+	return SetupRouter(Dependencies{
+		Handler:          handler,
+		AppMode:          config.AppConfig.AppMode,
+		SwaggerPassword:  config.AppConfig.SwaggerPassword,
+		AdminBearerToken: config.AppConfig.AdminBearerToken,
+	}), db
 }
 
 func openTestDB(t *testing.T) *gorm.DB {

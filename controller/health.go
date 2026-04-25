@@ -7,16 +7,15 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-
-	"github.com/zHElEARN/go-csust-planet/config"
+	"gorm.io/gorm"
 )
 
 const healthCheckTimeout = 2 * time.Second
 
 var errDatabaseUnavailable = errors.New("database unavailable")
 
-func HealthCheck(c *gin.Context) {
-	if err := checkDatabaseHealth(c.Request.Context()); err != nil {
+func (h *Handler) HealthCheck(c *gin.Context) {
+	if err := checkDatabaseHealth(c.Request.Context(), h.db); err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"status":   "unavailable",
 			"database": "down",
@@ -29,12 +28,12 @@ func HealthCheck(c *gin.Context) {
 	})
 }
 
-func checkDatabaseHealth(ctx context.Context) error {
-	if config.DB == nil {
+func checkDatabaseHealth(ctx context.Context, db *gorm.DB) error {
+	if db == nil {
 		return errDatabaseUnavailable
 	}
 
-	sqlDB, err := config.DB.DB()
+	sqlDB, err := db.DB()
 	if err != nil {
 		return err
 	}

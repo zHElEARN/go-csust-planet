@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"github.com/zHElEARN/go-csust-planet/config"
 	"github.com/zHElEARN/go-csust-planet/dto"
 	"github.com/zHElEARN/go-csust-planet/model"
 	"github.com/zHElEARN/go-csust-planet/utils/response"
@@ -24,9 +23,9 @@ import (
 // @Failure      401            {object}  dto.ErrorResponse
 // @Failure      500            {object}  dto.ErrorResponse
 // @Router       /admin/announcements [get]
-func GetAdminAnnouncements(c *gin.Context) {
+func (h *Handler) GetAdminAnnouncements(c *gin.Context) {
 	var announcements []model.Announcement
-	if err := config.DB.Order("created_at desc").Find(&announcements).Error; err != nil {
+	if err := h.db.Order("created_at desc").Find(&announcements).Error; err != nil {
 		log.Printf("[ERROR] 获取后台公告列表失败: %v", err)
 		response.ResponseError(c, http.StatusInternalServerError, "获取公告列表失败")
 		return
@@ -48,14 +47,14 @@ func GetAdminAnnouncements(c *gin.Context) {
 // @Failure      404            {object}  dto.ErrorResponse
 // @Failure      500            {object}  dto.ErrorResponse
 // @Router       /admin/announcements/{id} [get]
-func GetAdminAnnouncement(c *gin.Context) {
+func (h *Handler) GetAdminAnnouncement(c *gin.Context) {
 	id, ok := parseUUIDParam(c, "id")
 	if !ok {
 		return
 	}
 
 	var announcement model.Announcement
-	if err := config.DB.First(&announcement, "id = ?", id).Error; err != nil {
+	if err := h.db.First(&announcement, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.ResponseError(c, http.StatusNotFound, "未找到该公告")
 			return
@@ -82,7 +81,7 @@ func GetAdminAnnouncement(c *gin.Context) {
 // @Failure      401            {object}  dto.ErrorResponse
 // @Failure      500            {object}  dto.ErrorResponse
 // @Router       /admin/announcements [post]
-func CreateAnnouncement(c *gin.Context) {
+func (h *Handler) CreateAnnouncement(c *gin.Context) {
 	var req dto.AdminAnnouncementUpsertRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ResponseError(c, http.StatusBadRequest, "无效的请求参数")
@@ -95,7 +94,7 @@ func CreateAnnouncement(c *gin.Context) {
 		IsActive: *req.IsActive,
 		IsBanner: *req.IsBanner,
 	}
-	if err := config.DB.Create(&announcement).Error; err != nil {
+	if err := h.db.Create(&announcement).Error; err != nil {
 		log.Printf("[ERROR] 创建公告失败: %v", err)
 		response.ResponseError(c, http.StatusInternalServerError, "创建公告失败")
 		return
@@ -119,7 +118,7 @@ func CreateAnnouncement(c *gin.Context) {
 // @Failure      404            {object}  dto.ErrorResponse
 // @Failure      500            {object}  dto.ErrorResponse
 // @Router       /admin/announcements/{id} [put]
-func UpdateAnnouncement(c *gin.Context) {
+func (h *Handler) UpdateAnnouncement(c *gin.Context) {
 	id, ok := parseUUIDParam(c, "id")
 	if !ok {
 		return
@@ -132,7 +131,7 @@ func UpdateAnnouncement(c *gin.Context) {
 	}
 
 	var announcement model.Announcement
-	if err := config.DB.First(&announcement, "id = ?", id).Error; err != nil {
+	if err := h.db.First(&announcement, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.ResponseError(c, http.StatusNotFound, "未找到该公告")
 			return
@@ -148,7 +147,7 @@ func UpdateAnnouncement(c *gin.Context) {
 	announcement.IsActive = *req.IsActive
 	announcement.IsBanner = *req.IsBanner
 
-	if err := config.DB.Save(&announcement).Error; err != nil {
+	if err := h.db.Save(&announcement).Error; err != nil {
 		log.Printf("[ERROR] 更新公告失败 id=%s: %v", id, err)
 		response.ResponseError(c, http.StatusInternalServerError, "更新公告失败")
 		return
@@ -170,14 +169,14 @@ func UpdateAnnouncement(c *gin.Context) {
 // @Failure      404  {object}  dto.ErrorResponse
 // @Failure      500  {object}  dto.ErrorResponse
 // @Router       /admin/announcements/{id} [delete]
-func DeleteAnnouncement(c *gin.Context) {
+func (h *Handler) DeleteAnnouncement(c *gin.Context) {
 	id, ok := parseUUIDParam(c, "id")
 	if !ok {
 		return
 	}
 
 	var announcement model.Announcement
-	if err := config.DB.First(&announcement, "id = ?", id).Error; err != nil {
+	if err := h.db.First(&announcement, "id = ?", id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			response.ResponseError(c, http.StatusNotFound, "未找到该公告")
 			return
@@ -188,7 +187,7 @@ func DeleteAnnouncement(c *gin.Context) {
 		return
 	}
 
-	if err := config.DB.Delete(&announcement).Error; err != nil {
+	if err := h.db.Delete(&announcement).Error; err != nil {
 		log.Printf("[ERROR] 删除公告失败 id=%s: %v", id, err)
 		response.ResponseError(c, http.StatusInternalServerError, "删除公告失败")
 		return

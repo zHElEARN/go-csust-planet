@@ -1,18 +1,15 @@
 package controller
 
 import (
+	"errors"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 
-	"github.com/zHElEARN/go-csust-planet/config"
 	"github.com/zHElEARN/go-csust-planet/dto"
-	"github.com/zHElEARN/go-csust-planet/model"
-	"github.com/zHElEARN/go-csust-planet/utils/campuscard"
+	"github.com/zHElEARN/go-csust-planet/service"
 	"github.com/zHElEARN/go-csust-planet/utils/response"
 )
 
@@ -28,7 +25,7 @@ import (
 // @Failure      500      {object}  dto.ErrorResponse
 // @Router       /task/electricity [post]
 // @Security     BearerAuth
-func SyncElectricityTask(c *gin.Context) {
+func (h *Handler) SyncElectricityTask(c *gin.Context) {
 	userIdStr, exists := c.Get("userID")
 	if !exists {
 		response.ResponseError(c, http.StatusUnauthorized, "未授权的访问")
@@ -47,90 +44,17 @@ func SyncElectricityTask(c *gin.Context) {
 		return
 	}
 
-	for _, task := range req.Tasks {
-		if _, err := campuscard.GetBuildingByCampusName(task.Campus, task.Building); err != nil {
-			response.ResponseError(c, http.StatusBadRequest, "无效的校区或楼栋")
-			return
-		}
-
-		if _, err := time.Parse("15:04", task.NotifyTime); err != nil {
-			response.ResponseError(c, http.StatusBadRequest, "notifyTime 格式错误，请使用 HH:mm 格式")
-			return
-		}
-	}
-
-	// 开启事务
-	err = config.DB.Transaction(func(tx *gorm.DB) error {
-		var deviceToken model.DeviceToken
-		// 查找或创建 DeviceToken
-		err := tx.Where(model.DeviceToken{Token: req.DeviceToken}).
-			Assign(model.DeviceToken{UserID: userID}).
-			FirstOrCreate(&deviceToken).Error
-		if err != nil {
-			return err
-		}
-
-		// 加载现有任务
-		var existingTasks []model.ElectricityTask
-		if err := tx.Where("device_token_id = ?", deviceToken.ID).Find(&existingTasks).Error; err != nil {
-			return err
-		}
-
-		// 用来快速比较的 map
-		incomingMap := make(map[string]dto.ElectricityTaskOption)
-		for _, t := range req.Tasks {
-			key := t.NotifyTime + "|" + t.Campus + "|" + t.Building + "|" + t.Room
-			incomingMap[key] = t
-		}
-
-		existingMap := make(map[string]model.ElectricityTask)
-		for _, t := range existingTasks {
-			key := t.NotifyTime + "|" + t.Campus + "|" + t.Building + "|" + t.Room
-			existingMap[key] = t
-		}
-
-		// 删除不在 incoming 里面的任务
-		for key, t := range existingMap {
-			if _, ok := incomingMap[key]; !ok {
-				if err := tx.Delete(&t).Error; err != nil {
-					return err
-				}
-			}
-		}
-
-		// 增加在 incoming 里面有，但是在 existing 里面没有的任务
-		now := time.Now()
-		for key, t := range incomingMap {
-			if _, ok := existingMap[key]; !ok {
-				notifyTimeParsed, _ := time.Parse("15:04", t.NotifyTime)
-
-				nextRunAt := time.Date(now.Year(), now.Month(), now.Day(), notifyTimeParsed.Hour(), notifyTimeParsed.Minute(), 0, 0, now.Location())
-				if now.After(nextRunAt) {
-					nextRunAt = nextRunAt.Add(24 * time.Hour)
-				}
-
-				newTask := model.ElectricityTask{
-					DeviceTokenID: deviceToken.ID,
-					NotifyTime:    t.NotifyTime,
-					NextRunAt:     nextRunAt,
-					Status:        "pending",
-					Campus:        t.Campus,
-					Building:      t.Building,
-					Room:          t.Room,
-				}
-
-				if err := tx.Create(&newTask).Error; err != nil {
-					return err
-				}
-			}
-		}
-
-		return nil
-	})
-
+	err = h.electricityTaskService.Sync(userID, req)
 	if err != nil {
-		log.Printf("[ERROR] 同步电费任务失败: %v", err)
-		response.ResponseError(c, http.StatusInternalServerError, "同步任务失败")
+		switch {
+		case errors.Is(err, service.ErrInvalidBuilding):
+			response.ResponseError(c, http.StatusBadRequest, "无效的校区或楼栋")
+		case errors.Is(err, service.ErrInvalidNotifyTime):
+			response.ResponseError(c, http.StatusBadRequest, "notifyTime 格式错误，请使用 HH:mm 格式")
+		default:
+			log.Printf("[ERROR] 同步电费任务失败: %v", err)
+			response.ResponseError(c, http.StatusInternalServerError, "同步任务失败")
+		}
 		return
 	}
 

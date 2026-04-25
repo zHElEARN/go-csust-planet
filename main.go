@@ -4,9 +4,13 @@ import (
 	"log"
 
 	"github.com/zHElEARN/go-csust-planet/config"
+	"github.com/zHElEARN/go-csust-planet/controller"
 	"github.com/zHElEARN/go-csust-planet/router"
+	"github.com/zHElEARN/go-csust-planet/service"
 	"github.com/zHElEARN/go-csust-planet/utils/apns"
 	"github.com/zHElEARN/go-csust-planet/utils/campuscard"
+	"github.com/zHElEARN/go-csust-planet/utils/jwt"
+	"github.com/zHElEARN/go-csust-planet/utils/sso"
 	"github.com/zHElEARN/go-csust-planet/worker"
 )
 
@@ -21,9 +25,41 @@ func main() {
 	apns.InitAPNS()
 	campuscard.InitBuildingStoreBlocking()
 
-	worker.StartElectricityPushWorker()
+	authService := service.NewAuthService(
+		config.DB,
+		service.ProfileFetcherFunc(sso.GetUserProfile),
+		service.TokenGeneratorFunc(jwt.GenerateToken),
+	)
+	electricityTaskService := service.NewElectricityTaskService(
+		config.DB,
+		service.BuildingResolverFunc(campuscard.GetBuildingByCampusName),
+		nil,
+	)
+	adminAppVersionService := service.NewAdminAppVersionService(config.DB)
+	pushConfig := service.DefaultElectricityPushConfig()
+	electricityPushService := service.NewElectricityPushService(
+		config.DB,
+		service.BuildingResolverFunc(campuscard.GetBuildingByCampusName),
+		service.ElectricityFetcherFunc(campuscard.GetElectricity),
+		service.NotificationSenderFunc(apns.SendPushNotification),
+		pushConfig,
+	)
 
-	r := router.SetupRouter()
+	handler := controller.NewHandler(controller.Dependencies{
+		DB:                     config.DB,
+		AuthService:            authService,
+		ElectricityTaskService: electricityTaskService,
+		AdminAppVersionService: adminAppVersionService,
+	})
+
+	worker.StartElectricityPushWorker(electricityPushService, service.DefaultWorkerTickInterval)
+
+	r := router.SetupRouter(router.Dependencies{
+		Handler:          handler,
+		AppMode:          config.AppConfig.AppMode,
+		SwaggerPassword:  config.AppConfig.SwaggerPassword,
+		AdminBearerToken: config.AppConfig.AdminBearerToken,
+	})
 
 	err := r.Run(":" + config.AppConfig.Port)
 	if err != nil {

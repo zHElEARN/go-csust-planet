@@ -6,12 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/zHElEARN/go-csust-planet/config"
 	"github.com/zHElEARN/go-csust-planet/utils/response"
 )
 
 // AdminAuthMiddleware 后台身份验证中间件
-func AdminAuthMiddleware() gin.HandlerFunc {
+func AdminAuthMiddleware(adminBearerToken string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -27,7 +26,7 @@ func AdminAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		if parts[1] != config.AppConfig.AdminBearerToken {
+		if parts[1] != adminBearerToken {
 			response.ResponseError(c, http.StatusUnauthorized, "无效的后台访问令牌")
 			c.Abort()
 			return
