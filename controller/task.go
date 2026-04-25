@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -44,13 +43,18 @@ func SyncElectricityTask(c *gin.Context) {
 
 	var req dto.SyncElectricityTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ResponseError(c, http.StatusBadRequest, "无效请求参数: "+err.Error())
+		response.ResponseError(c, http.StatusBadRequest, "无效请求参数")
 		return
 	}
 
 	for _, task := range req.Tasks {
 		if _, err := campuscard.GetBuildingByCampusName(task.Campus, task.Building); err != nil {
-			response.ResponseError(c, http.StatusBadRequest, "无效的校区或楼栋: "+err.Error())
+			response.ResponseError(c, http.StatusBadRequest, "无效的校区或楼栋")
+			return
+		}
+
+		if _, err := time.Parse("15:04", task.NotifyTime); err != nil {
+			response.ResponseError(c, http.StatusBadRequest, "notifyTime 格式错误，请使用 HH:mm 格式")
 			return
 		}
 	}
@@ -98,11 +102,7 @@ func SyncElectricityTask(c *gin.Context) {
 		now := time.Now()
 		for key, t := range incomingMap {
 			if _, ok := existingMap[key]; !ok {
-				// 验证时间格式 "15:04"
-				notifyTimeParsed, err := time.Parse("15:04", t.NotifyTime)
-				if err != nil {
-					return fmt.Errorf("notifyTime %s 格式错误，请使用 HH:mm 格式", t.NotifyTime)
-				}
+				notifyTimeParsed, _ := time.Parse("15:04", t.NotifyTime)
 
 				nextRunAt := time.Date(now.Year(), now.Month(), now.Day(), notifyTimeParsed.Hour(), notifyTimeParsed.Minute(), 0, 0, now.Location())
 				if now.After(nextRunAt) {
@@ -129,8 +129,8 @@ func SyncElectricityTask(c *gin.Context) {
 	})
 
 	if err != nil {
-		log.Printf("同步电费任务失败: %v\n", err)
-		response.ResponseError(c, http.StatusInternalServerError, "同步任务失败: "+err.Error())
+		log.Printf("[ERROR] 同步电费任务失败: %v", err)
+		response.ResponseError(c, http.StatusInternalServerError, "同步任务失败")
 		return
 	}
 

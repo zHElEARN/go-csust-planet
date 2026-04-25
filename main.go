@@ -27,6 +27,6 @@ func main() {
 
 	err := r.Run(":" + config.AppConfig.Port)
 	if err != nil {
-		log.Fatalf("服务器启动失败: %v", err)
+		log.Fatalf("[FATAL] 服务器启动失败: %v", err)
 	}
 }

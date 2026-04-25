@@ -56,7 +56,7 @@ func StartElectricityPushWorker() {
 		ticker := time.NewTicker(WorkerTickInterval)
 		defer ticker.Stop()
 
-		log.Println("电费推送 Worker 已启动，等待调度...")
+		log.Println("[INFO] 电费推送 Worker 已启动，等待调度...")
 
 		for range ticker.C {
 			now := time.Now()
@@ -67,9 +67,9 @@ func StartElectricityPushWorker() {
 				Where("status = ? AND updated_at <= ?", TaskStatusProcessing, now.Add(-ZombieTaskThreshold)).
 				Update("status", TaskStatusPending)
 			if res.Error != nil {
-				log.Printf("重置僵尸任务失败: %v\n", res.Error)
+				log.Printf("[ERROR] 重置僵尸任务失败: %v", res.Error)
 			} else if res.RowsAffected > 0 {
-				log.Printf("成功将 %d 个僵尸任务重置为 pending\n", res.RowsAffected)
+				log.Printf("[INFO] 成功将 %d 个僵尸任务重置为 pending", res.RowsAffected)
 			}
 
 			// 拉取本批次任务
@@ -108,7 +108,7 @@ func StartElectricityPushWorker() {
 			})
 
 			if err != nil {
-				log.Printf("获取任务失败: %v\n", err)
+				log.Printf("[ERROR] 获取待执行电费任务失败: %v", err)
 				continue
 			}
 
@@ -116,7 +116,7 @@ func StartElectricityPushWorker() {
 				continue
 			}
 
-			log.Printf("拉取到 %d 个任务，开始顺序执行...\n", len(tasks))
+			log.Printf("[INFO] 拉取到 %d 个任务，开始顺序执行", len(tasks))
 
 			// 用来记录本批次中已经判定失效的 DeviceTokenID
 			deadTokens := make(map[string]bool)
@@ -127,7 +127,7 @@ func StartElectricityPushWorker() {
 
 				// 如果该设备的 Token 在之前的任务中已经失效并被清理，直接跳过内存中的后续任务
 				if deadTokens[tokenIDStr] {
-					log.Printf("跳过任务 %v，因为所属设备 Token 已在当前批次中失效并被清理\n", task.ID)
+					log.Printf("[INFO] 跳过任务 task_id=%v，因为所属设备 Token 已在当前批次中失效并被清理", task.ID)
 					continue
 				}
 
@@ -139,7 +139,7 @@ func StartElectricityPushWorker() {
 				}
 			}
 
-			log.Printf("本批次 %d 个任务执行完毕\n", len(tasks))
+			log.Printf("[INFO] 本批次 %d 个任务执行完毕", len(tasks))
 		}
 	}()
 }
@@ -183,12 +183,12 @@ func processSingleTask(task TaskWithToken, batchStartTime time.Time) bool {
 
 	// 根据执行结果处理数据库状态
 	if taskErr != nil {
-		log.Printf("任务 %v 执行失败: %v\n", task.ID, taskErr)
+		log.Printf("[ERROR] 电费任务执行失败 task_id=%v: %v", task.ID, taskErr)
 
 		if errors.Is(taskErr, campuscard.ErrRoomNotFound) {
-			log.Printf("任务 %v 对应房间不存在，正在删除该任务记录\n", task.ID)
+			log.Printf("[INFO] 电费任务对应房间不存在，正在删除任务 task_id=%v", task.ID)
 			if err := config.DB.Delete(&model.ElectricityTask{}, "id = ?", task.ID).Error; err != nil {
-				log.Printf("删除房间不存在的任务 %v 失败: %v\n", task.ID, err)
+				log.Printf("[ERROR] 删除房间不存在的任务失败 task_id=%v: %v", task.ID, err)
 			}
 			return false
 		}
@@ -196,25 +196,35 @@ func processSingleTask(task TaskWithToken, batchStartTime time.Time) bool {
 		reason := taskErr.Error()
 		// 识别 APNs 明确告知设备失效的错误
 		if reason == apns2.ReasonUnregistered || reason == apns2.ReasonBadDeviceToken {
-			log.Printf("检测到设备 Token 失效，正在删除相关的 DeviceToken (ID: %v)\n", task.DeviceTokenID)
+			log.Printf("[WARN] 检测到设备 Token 失效，正在删除相关 DeviceToken reason=%s", reason)
 			// 直接删除 Token，外键的 OnDelete:CASCADE 会自动清理该设备下的所有 tasks
-			config.DB.Where("id = ?", task.DeviceTokenID).Delete(&model.DeviceToken{})
+			if err := config.DB.Where("id = ?", task.DeviceTokenID).Delete(&model.DeviceToken{}).Error; err != nil {
+				log.Printf("[ERROR] 删除失效 DeviceToken 失败 task_id=%v: %v", task.ID, err)
+				if resetErr := resetTaskPending(task.ID); resetErr != nil {
+					log.Printf("[ERROR] 删除失效 DeviceToken 后回滚任务状态失败 task_id=%v: %v", task.ID, resetErr)
+				}
+				return false
+			}
 
 			return true
 		} else {
 			// 其他错误（网络波动、查询电量超时、学校接口挂了等），将状态回滚为 pending
-			config.DB.Model(&model.ElectricityTask{}).
-				Where("id = ?", task.ID).
-				Updates(map[string]any{
-					"status":     TaskStatusPending,
-					"updated_at": time.Now(),
-				})
+			if err := resetTaskPending(task.ID); err != nil {
+				log.Printf("[ERROR] 回滚失败电费任务状态失败 task_id=%v: %v", task.ID, err)
+			}
 		}
 	} else {
 		// 任务成功，计算下一次通知时间
-		log.Printf("任务 %v 执行成功\n", task.ID)
+		log.Printf("[INFO] 电费任务执行成功 task_id=%v", task.ID)
 
-		notifyTimeParsed, _ := time.Parse("15:04", task.NotifyTime)
+		notifyTimeParsed, err := time.Parse("15:04", task.NotifyTime)
+		if err != nil {
+			log.Printf("[ERROR] 电费任务 notifyTime 格式异常 task_id=%v: %v", task.ID, err)
+			if resetErr := resetTaskPending(task.ID); resetErr != nil {
+				log.Printf("[ERROR] notifyTime 异常后回滚任务状态失败 task_id=%v: %v", task.ID, resetErr)
+			}
+			return false
+		}
 		nextRunAt := time.Date(
 			batchStartTime.Year(), batchStartTime.Month(), batchStartTime.Day(),
 			notifyTimeParsed.Hour(), notifyTimeParsed.Minute(), 0, 0, batchStartTime.Location(),
@@ -226,13 +236,24 @@ func processSingleTask(task TaskWithToken, batchStartTime time.Time) bool {
 		}
 
 		// 更新任务为 pending，并设置明天的执行时间
-		config.DB.Model(&model.ElectricityTask{}).
+		if err := config.DB.Model(&model.ElectricityTask{}).
 			Where("id = ?", task.ID).
 			Updates(map[string]any{
 				"next_run_at": nextRunAt,
 				"status":      TaskStatusPending,
 				"updated_at":  time.Now(),
-			})
+			}).Error; err != nil {
+			log.Printf("[ERROR] 更新成功电费任务下次执行时间失败 task_id=%v next_run_at=%s: %v", task.ID, nextRunAt.Format(time.RFC3339), err)
+		}
 	}
 	return false
+}
+
+func resetTaskPending(taskID any) error {
+	return config.DB.Model(&model.ElectricityTask{}).
+		Where("id = ?", taskID).
+		Updates(map[string]any{
+			"status":     TaskStatusPending,
+			"updated_at": time.Now(),
+		}).Error
 }

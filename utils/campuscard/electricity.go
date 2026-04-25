@@ -151,7 +151,10 @@ func request[T any, R any](payload any, funname string, parser func(T) (R, error
 	}
 	defer resp.Body.Close()
 
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return zero, fmt.Errorf("读取响应数据失败: %w", err)
+	}
 	var data T
 	if err := json.Unmarshal(body, &data); err != nil {
 		return zero, err

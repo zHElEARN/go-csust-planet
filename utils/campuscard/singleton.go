@@ -27,12 +27,12 @@ func InitBuildingStoreBlocking() {
 	initOnce.Do(func() {
 		for {
 			if err := storeInstance.loadAll(); err != nil {
-				log.Printf("campuscard 楼栋缓存初始化失败，将在 %s 后重试: %v\n", initRetryDelay, err)
+				log.Printf("[ERROR] campuscard 楼栋缓存初始化失败，将在 %s 后重试: %v", initRetryDelay, err)
 				time.Sleep(initRetryDelay)
 				continue
 			}
 
-			log.Println("campuscard 楼栋缓存初始化完成")
+			log.Println("[INFO] campuscard 楼栋缓存初始化完成")
 			return
 		}
 	})
@@ -70,7 +70,7 @@ func (s *buildingStore) loadAll() error {
 		}
 		loaded[campusName] = campusMap
 
-		log.Printf("[%s]校区楼栋加载完成，共计 %d 栋\n", campusName, len(buildings))
+		log.Printf("[INFO] [%s]校区楼栋加载完成，共计 %d 栋", campusName, len(buildings))
 	}
 
 	s.mu.Lock()

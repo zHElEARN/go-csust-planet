@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -53,11 +54,13 @@ func Login(c *gin.Context) {
 				StudentID: profile.UserAccount,
 			}
 			if err := config.DB.Create(&user).Error; err != nil {
-				response.ResponseError(c, http.StatusInternalServerError, "创建用户失败: "+err.Error())
+				log.Printf("[ERROR] 创建用户失败: %v", err)
+				response.ResponseError(c, http.StatusInternalServerError, "创建用户失败")
 				return
 			}
 		} else {
-			response.ResponseError(c, http.StatusInternalServerError, "数据库查询出错: "+result.Error.Error())
+			log.Printf("[ERROR] 查询用户失败: %v", result.Error)
+			response.ResponseError(c, http.StatusInternalServerError, "数据库查询出错")
 			return
 		}
 	}
@@ -65,7 +68,8 @@ func Login(c *gin.Context) {
 	// 生成 JWT
 	jwtToken, err := jwt.GenerateToken(user.ID, profile.UserAccount, 30*24*time.Hour)
 	if err != nil {
-		response.ResponseError(c, http.StatusInternalServerError, "生成令牌失败: "+err.Error())
+		log.Printf("[ERROR] 生成令牌失败: %v", err)
+		response.ResponseError(c, http.StatusInternalServerError, "生成令牌失败")
 		return
 	}
 

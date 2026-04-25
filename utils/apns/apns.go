@@ -17,7 +17,7 @@ var apnsClient *apns2.Client
 func InitAPNS() {
 	authKey, err := token.AuthKeyFromFile(config.AppConfig.APNSPrivateKeyPath)
 	if err != nil {
-		log.Fatalf("APNS 令牌加载错误: %v", err)
+		log.Fatalf("[FATAL] APNS 令牌加载错误: %v", err)
 	}
 
 	jwtToken := &token.Token{
@@ -31,6 +31,8 @@ func InitAPNS() {
 	} else {
 		apnsClient = apns2.NewTokenClient(jwtToken).Development()
 	}
+
+	log.Printf("[INFO] APNS 客户端初始化完成 environment=%s", config.AppConfig.APNSEnvironment)
 }
 
 type PushNotification struct {

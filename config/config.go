@@ -31,7 +31,7 @@ var AppConfig *Config
 func InitConfig() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("未找到 .env 文件，将尝试直接使用系统环境变量")
+		log.Println("[WARN] 未找到 .env 文件，将尝试直接使用系统环境变量")
 	}
 
 	AppConfig = &Config{
@@ -65,7 +65,7 @@ func getEnvOrDefault(key, defaultValue string) string {
 func getEnvOrFatal(key string) string {
 	val := os.Getenv(key)
 	if val == "" {
-		log.Fatalf("错误: 缺少必要的环境变量配置: %s", key)
+		log.Fatalf("[FATAL] 缺少必要的环境变量配置: %s", key)
 	}
 	return val
 }
