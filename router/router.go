@@ -19,7 +19,13 @@ func SetupRouter() *gin.Engine {
 		gin.SetMode(gin.DebugMode)
 	}
 
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+		SkipPaths: []string{"/healthz"},
+	}))
+	r.Use(gin.Recovery())
+
+	r.GET("/healthz", controller.HealthCheck)
 
 	v1 := r.Group("/v1")
 
