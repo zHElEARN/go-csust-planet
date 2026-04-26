@@ -1,6 +1,6 @@
 # go-csust-planet
 
-这是 [长理星球](https://github.com/zHElEARN/CSUSTPlanet) 的配套后端项目，基于 Go 语言开发，为移动端提供核心数据支持与推送服务。
+这是 [长理星球](https://github.com/zHElEARN/CSUSTPlanet) 的配套后端项目，基于 Go 和 Svelte 开发，为移动端提供数据支持与推送服务。
 
 ## 功能特性
 
@@ -10,6 +10,7 @@
 - 电量实时监控：定时同步宿舍电量数据，并在用户设置得时间点通过 APNs 发送实时推送提醒。
 - 校历与配置管理：提供学期校历、校园地图标注点、公告发布以及应用版本检查等配置信息。
 - 数据同步：维护用户设备 Token，确保推送服务的准确触达。
+- 后台管理：提供 Web 端管理页面与配套 API。
 
 ## 构建
 
@@ -27,10 +28,17 @@
 
 2. 安装依赖
 
-   本项目使用 Go Modules 管理依赖：
+   本项目使用 Go Modules 管理后端依赖：
 
    ```bash
    go mod download
+   ```
+
+   使用 pnpm 管理后台管理系统依赖：
+
+   ```bash
+   cd admin
+   pnpm install
    ```
 
 3. 项目配置
@@ -43,7 +51,7 @@
 
    你需要确保 `.env` 文件中包含以下关键配置：
    - 数据库连接信息 (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` 等)
-   - JWT 密钥 (`JWT_SECRET`)
+   - JWT 密钥 (`JWT_SECRET`) 与 后台管理 Token (`ADMIN_BEARER_TOKEN`)
    - APNs 凭据信息 (`APNS_TEAM_IDENTIFIER`, `APNS_KEY_IDENTIFIER`, `APNS_PRIVATE_KEY_PATH` 等)
    - Swagger 文档访问密码 (`SWAGGER_PASSWORD`)
 
@@ -64,6 +72,17 @@
    ```bash
    air
    ```
+
+   同时启动后台管理系统：
+
+   ```bash
+   cd admin
+   pnpm dev
+   ```
+
+## 部署
+
+配套长理星球应用时，需要同时维护 Debug 和 Release 的后端，参见示例 [docker-compose.yml](docker-compose.yml) 和 [scripts/deploy-remote.sh](scripts/deploy-remote.sh) 文件。
 
 ## 许可证
 
