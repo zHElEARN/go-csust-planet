@@ -10,11 +10,11 @@ SSH_PORT="${DEPLOY_PORT:-22}"
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/deploy-remote.sh <target>
+  scripts/deploy-remote.sh <target> [commit_sha]
 
 Targets:
-  main  -> tag latest, service go-csust-planet
-  dev   -> tag dev, service go-csust-planet-dev
+  main  -> tag prod-$commit_sha, service go-csust-planet
+  dev   -> tag dev-$commit_sha, service go-csust-planet-dev
 
 Environment variables:
   DEPLOY_HOST   Required. SSH host
@@ -25,27 +25,32 @@ Environment variables:
 EOF
 }
 
-if [[ $# -ne 1 ]]; then
+if [[ $# -lt 1 ]]; then
   usage
   exit 1
 fi
+
+TARGET="$1"
+COMMIT_SHA="${2:-latest}"
 
 if [[ -z "${DEPLOY_HOST:-}" || -z "${DEPLOY_USER:-}" ]]; then
   echo "DEPLOY_HOST and DEPLOY_USER are required." >&2
   exit 1
 fi
 
-case "$1" in
+case "$TARGET" in
   main)
-    IMAGE_TAG="latest"
+    IMAGE_TAG="prod-${COMMIT_SHA}"
     SERVICE_NAME="go-csust-planet"
+    ENV_VAR_NAME="PROD_TAG"
     ;;
   dev)
-    IMAGE_TAG="dev"
+    IMAGE_TAG="dev-${COMMIT_SHA}"
     SERVICE_NAME="go-csust-planet-dev"
+    ENV_VAR_NAME="DEV_TAG"
     ;;
   *)
-    echo "Unsupported target: $1" >&2
+    echo "Unsupported target: $TARGET" >&2
     usage
     exit 1
     ;;
@@ -69,6 +74,9 @@ scp -P "${SSH_PORT}" "${LOCAL_ARCHIVE}" "${SSH_TARGET}:${REMOTE_ARCHIVE}"
 ssh -p "${SSH_PORT}" "${SSH_TARGET}" \
   "docker load -i '${REMOTE_ARCHIVE}' && \
    cd '${SERVER_PATH}' && \
+   touch .env && \
+   sed -i '/^${ENV_VAR_NAME}=/d' .env && \
+   echo '${ENV_VAR_NAME}=${IMAGE_TAG}' >> .env && \
    docker compose up -d --no-deps '${SERVICE_NAME}' && \
    rm -f '${REMOTE_ARCHIVE}' && \
    docker image prune -f"

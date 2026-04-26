@@ -4,17 +4,12 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 
-	"github.com/zHElEARN/go-csust-planet/config"
 	"github.com/zHElEARN/go-csust-planet/dto"
-	"github.com/zHElEARN/go-csust-planet/model"
-	"github.com/zHElEARN/go-csust-planet/utils/jwt"
+	"github.com/zHElEARN/go-csust-planet/service"
 	"github.com/zHElEARN/go-csust-planet/utils/response"
-	"github.com/zHElEARN/go-csust-planet/utils/sso"
 )
 
 // Login godoc
@@ -29,53 +24,33 @@ import (
 // @Failure      401      {object}  dto.ErrorResponse
 // @Failure      500      {object}  dto.ErrorResponse
 // @Router       /auth/login [post]
-func Login(c *gin.Context) {
+func (h *Handler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ResponseError(c, http.StatusBadRequest, "无效的参数，请提供 token")
 		return
 	}
 
-	// 获取用户信息
-	profile, err := sso.GetUserProfile(req.Token)
+	loginResponse, err := h.authService.Login(req.Token)
 	if err != nil {
-		// 如果无法获取用户信息，通常是 token 无效
-		response.ResponseError(c, http.StatusUnauthorized, "获取用户信息失败或 Token 已过期")
-		return
-	}
-
-	// 查找或创建用户
-	var user model.User
-	result := config.DB.Where("student_id = ?", profile.UserAccount).First(&user)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			// 如果不存在，则新建用户记录
-			user = model.User{
-				StudentID: profile.UserAccount,
-			}
-			if err := config.DB.Create(&user).Error; err != nil {
-				log.Printf("[ERROR] 创建用户失败: %v", err)
-				response.ResponseError(c, http.StatusInternalServerError, "创建用户失败")
-				return
-			}
-		} else {
-			log.Printf("[ERROR] 查询用户失败: %v", result.Error)
+		switch {
+		case errors.Is(err, service.ErrUnauthorized):
+			response.ResponseError(c, http.StatusUnauthorized, "获取用户信息失败或 Token 已过期")
+		case errors.Is(err, service.ErrUserQueryFailed):
+			log.Printf("[ERROR] 查询用户失败: %v", err)
 			response.ResponseError(c, http.StatusInternalServerError, "数据库查询出错")
-			return
+		case errors.Is(err, service.ErrUserCreateFailed):
+			log.Printf("[ERROR] 创建用户失败: %v", err)
+			response.ResponseError(c, http.StatusInternalServerError, "创建用户失败")
+		case errors.Is(err, service.ErrTokenGenerateFailed):
+			log.Printf("[ERROR] 生成令牌失败: %v", err)
+			response.ResponseError(c, http.StatusInternalServerError, "生成令牌失败")
+		default:
+			log.Printf("[ERROR] 登录失败: %v", err)
+			response.ResponseError(c, http.StatusInternalServerError, "登录失败")
 		}
-	}
-
-	// 生成 JWT
-	jwtToken, err := jwt.GenerateToken(user.ID, profile.UserAccount, 30*24*time.Hour)
-	if err != nil {
-		log.Printf("[ERROR] 生成令牌失败: %v", err)
-		response.ResponseError(c, http.StatusInternalServerError, "生成令牌失败")
 		return
 	}
 
-	// 返回 JWT 和用户信息
-	c.JSON(http.StatusOK, dto.LoginResponse{
-		Token:   jwtToken,
-		Profile: profile,
-	})
+	c.JSON(http.StatusOK, loginResponse)
 }

@@ -1,5 +1,140 @@
 basePath: /v1
 definitions:
+  dto.AdminAnnouncementResponse:
+    properties:
+      content:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      isActive:
+        type: boolean
+      isBanner:
+        type: boolean
+      title:
+        type: string
+    type: object
+  dto.AdminAnnouncementUpsertRequest:
+    properties:
+      content:
+        type: string
+      isActive:
+        type: boolean
+      isBanner:
+        type: boolean
+      title:
+        type: string
+    required:
+    - content
+    - isActive
+    - isBanner
+    - title
+    type: object
+  dto.AdminAppVersionResponse:
+    properties:
+      createdAt:
+        type: string
+      downloadUrl:
+        type: string
+      id:
+        type: string
+      isForceUpdate:
+        type: boolean
+      platform:
+        type: string
+      releaseNotes:
+        type: string
+      versionCode:
+        type: integer
+      versionName:
+        type: string
+    type: object
+  dto.AdminAppVersionUpsertRequest:
+    properties:
+      downloadUrl:
+        type: string
+      isForceUpdate:
+        type: boolean
+      platform:
+        enum:
+        - ios
+        - android
+        type: string
+      releaseNotes:
+        type: string
+      versionCode:
+        type: integer
+      versionName:
+        type: string
+    required:
+    - downloadUrl
+    - isForceUpdate
+    - platform
+    - releaseNotes
+    - versionCode
+    - versionName
+    type: object
+  dto.AdminSemesterCalendarResponse:
+    properties:
+      calendarEnd:
+        type: string
+      calendarStart:
+        type: string
+      createdAt:
+        type: string
+      customWeekRanges:
+        items:
+          $ref: '#/definitions/model.CustomWeekRange'
+        type: array
+      notes:
+        items:
+          $ref: '#/definitions/model.CalendarNote'
+        type: array
+      semesterCode:
+        type: string
+      semesterEnd:
+        type: string
+      semesterStart:
+        type: string
+      subtitle:
+        type: string
+      title:
+        type: string
+    type: object
+  dto.AdminSemesterCalendarUpsertRequest:
+    properties:
+      calendarEnd:
+        type: string
+      calendarStart:
+        type: string
+      customWeekRanges:
+        items:
+          $ref: '#/definitions/model.CustomWeekRange'
+        type: array
+      notes:
+        items:
+          $ref: '#/definitions/model.CalendarNote'
+        type: array
+      semesterCode:
+        type: string
+      semesterEnd:
+        type: string
+      semesterStart:
+        type: string
+      subtitle:
+        type: string
+      title:
+        type: string
+    required:
+    - calendarEnd
+    - calendarStart
+    - semesterCode
+    - semesterEnd
+    - semesterStart
+    - subtitle
+    - title
+    type: object
   dto.AnnouncementResponse:
     properties:
       content:
@@ -218,6 +353,587 @@ info:
   title: go-csust-planet API
   version: "1.0"
 paths:
+  /admin/announcements:
+    get:
+      description: 获取全部公告列表，按创建时间倒序排列
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.AdminAnnouncementResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 获取后台公告列表
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      description: 创建一条新的后台公告
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 公告信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminAnnouncementUpsertRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AdminAnnouncementResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 创建公告
+      tags:
+      - admin
+  /admin/announcements/{id}:
+    delete:
+      description: 根据公告ID删除后台公告
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 公告ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 删除公告
+      tags:
+      - admin
+    get:
+      description: 根据公告ID获取后台公告详情
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 公告ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AdminAnnouncementResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 获取后台公告详情
+      tags:
+      - admin
+    put:
+      consumes:
+      - application/json
+      description: 根据公告ID更新后台公告
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 公告ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 公告信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminAnnouncementUpsertRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AdminAnnouncementResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 更新公告
+      tags:
+      - admin
+  /admin/app-versions:
+    get:
+      description: 获取全部 App 版本列表，按平台升序、版本号降序排列
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.AdminAppVersionResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 获取后台 App 版本列表
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      description: 创建一条新的 App 版本记录
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 版本信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminAppVersionUpsertRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AdminAppVersionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 创建 App 版本
+      tags:
+      - admin
+  /admin/app-versions/{id}:
+    delete:
+      description: 根据版本ID删除 App 版本
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 版本ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 删除 App 版本
+      tags:
+      - admin
+    get:
+      description: 根据版本ID获取后台 App 版本详情
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 版本ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AdminAppVersionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 获取后台 App 版本详情
+      tags:
+      - admin
+    put:
+      consumes:
+      - application/json
+      description: 根据版本ID更新 App 版本信息
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 版本ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 版本信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminAppVersionUpsertRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AdminAppVersionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 更新 App 版本
+      tags:
+      - admin
+  /admin/semester-calendars:
+    get:
+      description: 获取全部校历列表，按学期代码倒序排列
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.AdminSemesterCalendarResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 获取后台校历列表
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      description: 创建一条新的后台校历
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 校历信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminSemesterCalendarUpsertRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AdminSemesterCalendarResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 创建校历
+      tags:
+      - admin
+  /admin/semester-calendars/{semester_code}:
+    delete:
+      description: 根据学期代码删除后台校历
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 学期代码
+        in: path
+        name: semester_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 删除校历
+      tags:
+      - admin
+    get:
+      description: 根据学期代码获取后台校历详情
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 学期代码
+        in: path
+        name: semester_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AdminSemesterCalendarResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 获取后台校历详情
+      tags:
+      - admin
+    put:
+      consumes:
+      - application/json
+      description: 根据学期代码更新后台校历
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 学期代码
+        in: path
+        name: semester_code
+        required: true
+        type: string
+      - description: 校历信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminSemesterCalendarUpsertRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AdminSemesterCalendarResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: 更新校历
+      tags:
+      - admin
   /auth/login:
     post:
       consumes:
