@@ -2,6 +2,12 @@
 	<title>后台管理</title>
 </svelte:head>
 
-<section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-	<h1 class="text-2xl font-semibold text-slate-900">后台管理</h1>
-</section>
+<div class="admin-page">
+	<header class="admin-page-header">
+		<h1 class="admin-page-title">后台管理</h1>
+	</header>
+
+	<section class="admin-card">
+		<p class="text-sm text-slate-600">请选择左侧菜单进入对应的后台功能。</p>
+	</section>
+</div>
