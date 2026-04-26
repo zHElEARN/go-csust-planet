@@ -132,3 +132,46 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  deploy:
+    name: Deploy
+    needs:
+      - skip-check
+      - go-test
+      - admin-check
+    if: >-
+      ${{
+        github.event_name == 'push' &&
+        (github.ref_name == 'main' || github.ref_name == 'dev') &&
+        needs.skip-check.outputs.skip_test != 'true' &&
+        needs.skip-check.outputs.skip_deploy != 'true' &&
+        needs.go-test.result == 'success' &&
+        needs.admin-check.result == 'success'
+      }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-${{ github.ref_name }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Prepare SSH key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${DEPLOY_SSH_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Run deploy
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: ./scripts/deploy-remote.sh "${{ github.ref_name }}"
