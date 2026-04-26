@@ -75,6 +75,12 @@ func SetupRouter(deps Dependencies) *gin.Engine {
 		adminGroup.POST("/app-versions", deps.Handler.CreateAppVersion)
 		adminGroup.PUT("/app-versions/:id", deps.Handler.UpdateAppVersion)
 		adminGroup.DELETE("/app-versions/:id", deps.Handler.DeleteAppVersion)
+
+		adminGroup.GET("/semester-calendars", deps.Handler.GetAdminSemesterCalendars)
+		adminGroup.GET("/semester-calendars/:semester_code", deps.Handler.GetAdminSemesterCalendar)
+		adminGroup.POST("/semester-calendars", deps.Handler.CreateSemesterCalendar)
+		adminGroup.PUT("/semester-calendars/:semester_code", deps.Handler.UpdateSemesterCalendar)
+		adminGroup.DELETE("/semester-calendars/:semester_code", deps.Handler.DeleteSemesterCalendar)
 	}
 
 	mountAdminFrontend(r, deps.AppMode)
