@@ -12,13 +12,59 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  skip-check:
+    name: Skip Check
+    runs-on: ubuntu-latest
+    outputs:
+      skip_test: ${{ steps.flags.outputs.skip_test }}
+      skip_deploy: ${{ steps.flags.outputs.skip_deploy }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Resolve skip flags
+        id: flags
+        run: |
+          commit_message="$(git log -1 --pretty=%B)"
+
+          skip_test=false
+          skip_deploy=false
+
+          case "${commit_message}" in
+            *"[skip test]"*) skip_test=true ;;
+          esac
+
+          case "${commit_message}" in
+            *"[skip deploy]"*) skip_deploy=true ;;
+          esac
+
+          {
+            echo "skip_test=${skip_test}"
+            echo "skip_deploy=${skip_deploy}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Summary
+        run: |
+          {
+            echo "## Skip flags"
+            echo
+            echo "- skip_test: ${{ steps.flags.outputs.skip_test }}"
+            echo "- skip_deploy: ${{ steps.flags.outputs.skip_deploy }}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
   deploy:
     name: Deploy
+    needs: skip-check
     if: >-
       ${{
         github.event.workflow_run.conclusion == 'success' &&
         (github.event.workflow_run.head_branch == 'main' ||
-         github.event.workflow_run.head_branch == 'dev')
+         github.event.workflow_run.head_branch == 'dev') &&
+        needs.skip-check.outputs.skip_test != 'true' &&
+        needs.skip-check.outputs.skip_deploy != 'true'
       }}
     runs-on: ubuntu-latest
 

@@ -11,8 +11,54 @@ permissions:
   contents: read
 
 jobs:
+  skip-check:
+    name: Skip Check
+    runs-on: ubuntu-latest
+    outputs:
+      skip_test: ${{ steps.flags.outputs.skip_test }}
+      skip_deploy: ${{ steps.flags.outputs.skip_deploy }}
+
+    steps:
+      - name: Resolve skip flags
+        id: flags
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          commit_message=""
+          if [ "${EVENT_NAME}" = "push" ]; then
+            commit_message="${HEAD_COMMIT_MESSAGE}"
+          fi
+
+          skip_test=false
+          skip_deploy=false
+
+          case "${commit_message}" in
+            *"[skip test]"*) skip_test=true ;;
+          esac
+
+          case "${commit_message}" in
+            *"[skip deploy]"*) skip_deploy=true ;;
+          esac
+
+          {
+            echo "skip_test=${skip_test}"
+            echo "skip_deploy=${skip_deploy}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Summary
+        run: |
+          {
+            echo "## Skip flags"
+            echo
+            echo "- skip_test: ${{ steps.flags.outputs.skip_test }}"
+            echo "- skip_deploy: ${{ steps.flags.outputs.skip_deploy }}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
   go-test:
     name: Go Test
+    needs: skip-check
+    if: ${{ github.event_name != 'push' || needs.skip-check.outputs.skip_test != 'true' }}
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -52,6 +98,8 @@ jobs:
 
   admin-check:
     name: Admin Check
+    needs: skip-check
+    if: ${{ github.event_name != 'push' || needs.skip-check.outputs.skip_test != 'true' }}
     runs-on: ubuntu-latest
     defaults:
       run:
