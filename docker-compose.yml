@@ -1,10 +1,33 @@
 services:
   go-csust-planet:
-    image: go-csust-planet:latest
+    image: go-csust-planet:${PROD_TAG}
     container_name: go-csust-planet
+    restart: always
     env_file:
-      - .env
+      - production.env
+    ports:
+      - "7242:7242"
+    volumes:
+      - ./AuthKey_XXXXXXXXXX.p8:/app/secrets/AuthKey_XXXXXXXXXX.p8:ro
+    deploy:
+      resources:
+        reservations:
+          memory: 96M
+        limits:
+          memory: 256M
+  go-csust-planet-dev:
+    image: go-csust-planet:${DEV_TAG}
+    container_name: go-csust-planet-dev
+    restart: always
+    env_file:
+      - development.env
     ports:
       - "7241:7241"
     volumes:
-      - ./AuthKey_xxx.p8:/app/secrets/AuthKey_xxx.p8:ro
+      - ./AuthKey_XXXXXXXXXX.p8:/app/secrets/AuthKey_XXXXXXXXXX.p8:ro
+    deploy:
+      resources:
+        reservations:
+          memory: 96M
+        limits:
+          memory: 256M
