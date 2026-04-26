@@ -1,17 +1,71 @@
 name: Deploy
 
 on:
-  push:
-    branches:
-      - main
-      - dev
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
 
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: deploy-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: true
 
 jobs:
+  skip-check:
+    name: Skip Check
+    runs-on: ubuntu-latest
+    outputs:
+      skip_test: ${{ steps.flags.outputs.skip_test }}
+      skip_deploy: ${{ steps.flags.outputs.skip_deploy }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Resolve skip flags
+        id: flags
+        run: |
+          commit_message="$(git log -1 --pretty=%B)"
+
+          skip_test=false
+          skip_deploy=false
+
+          case "${commit_message}" in
+            *"[skip test]"*) skip_test=true ;;
+          esac
+
+          case "${commit_message}" in
+            *"[skip deploy]"*) skip_deploy=true ;;
+          esac
+
+          {
+            echo "skip_test=${skip_test}"
+            echo "skip_deploy=${skip_deploy}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Summary
+        run: |
+          {
+            echo "## Skip flags"
+            echo
+            echo "- skip_test: ${{ steps.flags.outputs.skip_test }}"
+            echo "- skip_deploy: ${{ steps.flags.outputs.skip_deploy }}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
   deploy:
+    name: Deploy
+    needs: skip-check
+    if: >-
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        (github.event.workflow_run.head_branch == 'main' ||
+         github.event.workflow_run.head_branch == 'dev') &&
+        needs.skip-check.outputs.skip_test != 'true' &&
+        needs.skip-check.outputs.skip_deploy != 'true'
+      }}
     runs-on: ubuntu-latest
 
     steps:
@@ -30,9 +84,9 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Deploy
+      - name: Run deploy
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-        run: ./scripts/deploy-remote.sh "${GITHUB_REF_NAME}"
+        run: ./scripts/deploy-remote.sh "${{ github.event.workflow_run.head_branch }}"

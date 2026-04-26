@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - dev
+
+permissions:
+  contents: read
+
+jobs:
+  skip-check:
+    name: Skip Check
+    runs-on: ubuntu-latest
+    outputs:
+      skip_test: ${{ steps.flags.outputs.skip_test }}
+      skip_deploy: ${{ steps.flags.outputs.skip_deploy }}
+
+    steps:
+      - name: Resolve skip flags
+        id: flags
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          commit_message=""
+          if [ "${EVENT_NAME}" = "push" ]; then
+            commit_message="${HEAD_COMMIT_MESSAGE}"
+          fi
+
+          skip_test=false
+          skip_deploy=false
+
+          case "${commit_message}" in
+            *"[skip test]"*) skip_test=true ;;
+          esac
+
+          case "${commit_message}" in
+            *"[skip deploy]"*) skip_deploy=true ;;
+          esac
+
+          {
+            echo "skip_test=${skip_test}"
+            echo "skip_deploy=${skip_deploy}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Summary
+        run: |
+          {
+            echo "## Skip flags"
+            echo
+            echo "- skip_test: ${{ steps.flags.outputs.skip_test }}"
+            echo "- skip_deploy: ${{ steps.flags.outputs.skip_deploy }}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  go-test:
+    name: Go Test
+    needs: skip-check
+    if: ${{ github.event_name != 'push' || needs.skip-check.outputs.skip_test != 'true' }}
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: csust_planet_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d csust_planet_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      TEST_DB_HOST: 127.0.0.1
+      TEST_DB_PORT: "5432"
+      TEST_DB_USER: postgres
+      TEST_DB_PASSWORD: postgres
+      TEST_DB_NAME: csust_planet_test
+      TEST_DB_SSLMODE: disable
+      TEST_DB_TIMEZONE: Asia/Shanghai
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run Go tests
+        run: go test -p 1 ./...
+
+  admin-check:
+    name: Admin Check
+    needs: skip-check
+    if: ${{ github.event_name != 'push' || needs.skip-check.outputs.skip_test != 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: admin/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm check
+
+      - name: Build
+        run: pnpm build
