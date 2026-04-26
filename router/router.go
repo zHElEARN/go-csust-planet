@@ -77,6 +77,8 @@ func SetupRouter(deps Dependencies) *gin.Engine {
 		adminGroup.DELETE("/app-versions/:id", deps.Handler.DeleteAppVersion)
 	}
 
+	mountAdminFrontend(r, deps.AppMode)
+
 	r.NoRoute(controller.HandleNotFound)
 
 	return r
