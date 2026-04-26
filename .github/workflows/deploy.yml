@@ -1,17 +1,25 @@
 name: Deploy
 
 on:
-  push:
-    branches:
-      - main
-      - dev
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
 
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: deploy-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: true
 
 jobs:
   deploy:
+    name: Deploy
+    if: >-
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        (github.event.workflow_run.head_branch == 'main' ||
+         github.event.workflow_run.head_branch == 'dev')
+      }}
     runs-on: ubuntu-latest
 
     steps:
@@ -30,9 +38,9 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Deploy
+      - name: Run deploy
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-        run: ./scripts/deploy-remote.sh "${GITHUB_REF_NAME}"
+        run: ./scripts/deploy-remote.sh "${{ github.event.workflow_run.head_branch }}"
