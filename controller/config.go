@@ -70,8 +70,8 @@ func (h *Handler) GetAppVersions(c *gin.Context) {
 		return
 	}
 
-	var versions []model.AppVersion
-	if err := h.db.Where("platform = ?", req.Platform).Order("version_code desc").Find(&versions).Error; err != nil {
+	versions, err := h.adminAppVersionService.ListByPlatform(req.Platform)
+	if err != nil {
 		log.Printf("[ERROR] 获取版本信息失败 platform=%s: %v", req.Platform, err)
 		response.ResponseError(c, http.StatusInternalServerError, "获取版本信息失败")
 		return
@@ -99,15 +99,14 @@ func (h *Handler) CheckAppVersion(c *gin.Context) {
 		return
 	}
 
-	var latestVersion model.AppVersion
-	err := h.db.Where("platform = ?", req.Platform).Order("version_code desc").First(&latestVersion).Error
+	result, err := h.adminAppVersionService.CheckUpdate(req.Platform, req.CurrentVersionCode)
 	if err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Printf("[ERROR] 检查版本更新失败 platform=%s current_version_code=%d: %v", req.Platform, req.CurrentVersionCode, err)
-			response.ResponseError(c, http.StatusInternalServerError, "检查版本更新失败")
-			return
-		}
+		log.Printf("[ERROR] 检查版本更新失败 platform=%s current_version_code=%d: %v", req.Platform, req.CurrentVersionCode, err)
+		response.ResponseError(c, http.StatusInternalServerError, "检查版本更新失败")
+		return
+	}
 
+	if result.LatestVersion == nil {
 		c.JSON(http.StatusOK, dto.CheckAppVersionResponse{
 			HasUpdate:     false,
 			IsForceUpdate: false,
@@ -116,24 +115,10 @@ func (h *Handler) CheckAppVersion(c *gin.Context) {
 		return
 	}
 
-	hasUpdate := latestVersion.VersionCode > req.CurrentVersionCode
-	var isForceUpdate bool
-	if hasUpdate {
-		var forceUpdate model.AppVersion
-		err := h.db.Select("id").Where("platform = ? AND version_code > ? AND is_force_update = ?", req.Platform, req.CurrentVersionCode, true).First(&forceUpdate).Error
-		if err == nil {
-			isForceUpdate = true
-		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Printf("[ERROR] 检查强制更新失败 platform=%s current_version_code=%d: %v", req.Platform, req.CurrentVersionCode, err)
-			response.ResponseError(c, http.StatusInternalServerError, "检查版本更新失败")
-			return
-		}
-	}
-
-	latestVersionDto := dto.FromAppVersionModel(latestVersion)
+	latestVersionDto := dto.FromAppVersionModel(*result.LatestVersion)
 	c.JSON(http.StatusOK, dto.CheckAppVersionResponse{
-		HasUpdate:     hasUpdate,
-		IsForceUpdate: isForceUpdate,
+		HasUpdate:     result.HasUpdate,
+		IsForceUpdate: result.IsForceUpdate,
 		LatestVersion: &latestVersionDto,
 	})
 }

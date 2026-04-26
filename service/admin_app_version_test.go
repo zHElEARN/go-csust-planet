@@ -154,3 +154,96 @@ func TestAdminAppVersionServiceGetMissingVersion(t *testing.T) {
 		t.Fatalf("expected ErrNotFound, got %v", err)
 	}
 }
+
+func TestAdminAppVersionServiceListByPlatformAndCheckUpdate(t *testing.T) {
+	db := openServiceTestDB(t)
+	appVersionService := NewAdminAppVersionService(db)
+
+	createServiceTestAppVersion(t, db, model.AppVersion{
+		Platform:      "ios",
+		VersionCode:   100,
+		VersionName:   "1.0.0",
+		IsForceUpdate: false,
+		ReleaseNotes:  "initial",
+		DownloadURL:   "https://example.com/ios-100",
+	})
+	mid := createServiceTestAppVersion(t, db, model.AppVersion{
+		Platform:      "ios",
+		VersionCode:   200,
+		VersionName:   "2.0.0",
+		IsForceUpdate: false,
+		ReleaseNotes:  "minor",
+		DownloadURL:   "https://example.com/ios-200",
+	})
+	createServiceTestAppVersion(t, db, model.AppVersion{
+		Platform:      "android",
+		VersionCode:   50,
+		VersionName:   "5.0.0",
+		IsForceUpdate: false,
+		ReleaseNotes:  "android",
+		DownloadURL:   "https://example.com/android-50",
+	})
+
+	versions, err := appVersionService.ListByPlatform("ios")
+	if err != nil {
+		t.Fatalf("expected list by platform to succeed: %v", err)
+	}
+	if len(versions) != 2 {
+		t.Fatalf("expected 2 ios versions, got %d", len(versions))
+	}
+	if versions[0].VersionCode != mid.VersionCode || versions[1].VersionCode != 100 {
+		t.Fatalf("unexpected ios version order: %+v", versions)
+	}
+
+	emptyResult, err := appVersionService.CheckUpdate("android", 100)
+	if err != nil {
+		t.Fatalf("expected empty platform check to succeed: %v", err)
+	}
+	if emptyResult.HasUpdate || emptyResult.IsForceUpdate || emptyResult.LatestVersion == nil {
+		t.Fatalf("expected latest android version without update, got %+v", emptyResult)
+	}
+
+	noVersionResult, err := appVersionService.CheckUpdate("web", 1)
+	if err != nil {
+		t.Fatalf("expected missing platform check to succeed: %v", err)
+	}
+	if noVersionResult.HasUpdate || noVersionResult.IsForceUpdate || noVersionResult.LatestVersion != nil {
+		t.Fatalf("expected missing platform to return empty result, got %+v", noVersionResult)
+	}
+
+	upToDateResult, err := appVersionService.CheckUpdate("ios", mid.VersionCode)
+	if err != nil {
+		t.Fatalf("expected up-to-date check to succeed: %v", err)
+	}
+	if upToDateResult.HasUpdate || upToDateResult.IsForceUpdate || upToDateResult.LatestVersion == nil {
+		t.Fatalf("unexpected up-to-date result: %+v", upToDateResult)
+	}
+
+	nonForceResult, err := appVersionService.CheckUpdate("ios", 150)
+	if err != nil {
+		t.Fatalf("expected non-force check to succeed: %v", err)
+	}
+	if !nonForceResult.HasUpdate || nonForceResult.IsForceUpdate || nonForceResult.LatestVersion == nil {
+		t.Fatalf("unexpected non-force result: %+v", nonForceResult)
+	}
+
+	latest := createServiceTestAppVersion(t, db, model.AppVersion{
+		Platform:      "ios",
+		VersionCode:   300,
+		VersionName:   "3.0.0",
+		IsForceUpdate: true,
+		ReleaseNotes:  "force",
+		DownloadURL:   "https://example.com/ios-300",
+	})
+
+	forceResult, err := appVersionService.CheckUpdate("ios", 150)
+	if err != nil {
+		t.Fatalf("expected force check to succeed: %v", err)
+	}
+	if !forceResult.HasUpdate || !forceResult.IsForceUpdate || forceResult.LatestVersion == nil {
+		t.Fatalf("unexpected force result: %+v", forceResult)
+	}
+	if forceResult.LatestVersion.VersionCode != latest.VersionCode {
+		t.Fatalf("expected latest version code %d, got %+v", latest.VersionCode, forceResult.LatestVersion)
+	}
+}

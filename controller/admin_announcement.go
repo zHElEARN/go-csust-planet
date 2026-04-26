@@ -110,11 +110,6 @@ func (h *Handler) CreateAnnouncement(c *gin.Context) {
 		response.ResponseError(c, http.StatusInternalServerError, "创建公告失败")
 		return
 	}
-	if err := h.db.First(&announcement, "id = ?", announcement.ID).Error; err != nil {
-		log.Printf("[ERROR] 查询新建公告失败 id=%s: %v", announcement.ID, err)
-		response.ResponseError(c, http.StatusInternalServerError, "创建公告失败")
-		return
-	}
 
 	c.JSON(http.StatusCreated, dto.FromAdminAnnouncementModel(announcement))
 }

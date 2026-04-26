@@ -29,6 +29,15 @@ func (s *adminAppVersionService) List() ([]model.AppVersion, error) {
 	return versions, nil
 }
 
+func (s *adminAppVersionService) ListByPlatform(platform string) ([]model.AppVersion, error) {
+	var versions []model.AppVersion
+	if err := s.db.Where("platform = ?", platform).Order("version_code desc").Find(&versions).Error; err != nil {
+		return nil, err
+	}
+
+	return versions, nil
+}
+
 func (s *adminAppVersionService) Get(id uuid.UUID) (model.AppVersion, error) {
 	var version model.AppVersion
 	if err := s.db.First(&version, "id = ?", id).Error; err != nil {
@@ -39,6 +48,39 @@ func (s *adminAppVersionService) Get(id uuid.UUID) (model.AppVersion, error) {
 	}
 
 	return version, nil
+}
+
+func (s *adminAppVersionService) CheckUpdate(platform string, currentVersionCode int) (AppVersionCheckResult, error) {
+	var latestVersion model.AppVersion
+	if err := s.db.Where("platform = ?", platform).Order("version_code desc").First(&latestVersion).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return AppVersionCheckResult{}, nil
+		}
+		return AppVersionCheckResult{}, err
+	}
+
+	result := AppVersionCheckResult{
+		HasUpdate:     latestVersion.VersionCode > currentVersionCode,
+		IsForceUpdate: false,
+		LatestVersion: &latestVersion,
+	}
+	if !result.HasUpdate {
+		return result, nil
+	}
+
+	var forceUpdate model.AppVersion
+	err := s.db.Select("id").
+		Where("platform = ? AND version_code > ? AND is_force_update = ?", platform, currentVersionCode, true).
+		First(&forceUpdate).Error
+	if err == nil {
+		result.IsForceUpdate = true
+		return result, nil
+	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return result, nil
+	}
+
+	return AppVersionCheckResult{}, err
 }
 
 func (s *adminAppVersionService) Create(req dto.AdminAppVersionUpsertRequest) (model.AppVersion, error) {
