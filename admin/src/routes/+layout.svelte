@@ -20,10 +20,12 @@
 	const loginPath = resolve('/login');
 	const announcementsPath = resolve('/announcements');
 	const appVersionsPath = resolve('/app-versions');
+	const semesterCalendarsPath = resolve('/semester-calendars');
 	const navItems = [
 		{ label: '后台管理', href: homePath },
 		{ label: '公告管理', href: announcementsPath },
-		{ label: '版本管理', href: appVersionsPath }
+		{ label: '版本管理', href: appVersionsPath },
+		{ label: '校历管理', href: semesterCalendarsPath }
 	];
 
 	let authState = $state<'checking' | 'authenticated' | 'unauthenticated'>('checking');

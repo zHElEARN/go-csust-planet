@@ -36,6 +36,43 @@ export type AdminAppVersionUpsertRequest = {
 	downloadUrl: string;
 };
 
+export type CalendarNote = {
+	row: number;
+	content: string;
+	needNumber?: boolean;
+};
+
+export type CustomWeekRange = {
+	startRow: number;
+	endRow: number;
+	content: string;
+};
+
+export type AdminSemesterCalendar = {
+	semesterCode: string;
+	title: string;
+	subtitle: string;
+	calendarStart: string;
+	calendarEnd: string;
+	semesterStart: string;
+	semesterEnd: string;
+	notes: CalendarNote[];
+	customWeekRanges: CustomWeekRange[];
+	createdAt: string;
+};
+
+export type AdminSemesterCalendarUpsertRequest = {
+	semesterCode: string;
+	title: string;
+	subtitle: string;
+	calendarStart: string;
+	calendarEnd: string;
+	semesterStart: string;
+	semesterEnd: string;
+	notes: CalendarNote[];
+	customWeekRanges: CustomWeekRange[];
+};
+
 export class AdminUnauthorizedError extends Error {
 	constructor() {
 		super('unauthorized');
@@ -154,6 +191,39 @@ export function updateAppVersion(
 
 export function deleteAppVersion(id: string): Promise<void> {
 	return adminRequest<void>(`/v1/admin/app-versions/${id}`, {
+		method: 'DELETE'
+	});
+}
+
+export function listSemesterCalendars(): Promise<AdminSemesterCalendar[]> {
+	return adminRequest<AdminSemesterCalendar[]>('/v1/admin/semester-calendars');
+}
+
+export function getSemesterCalendar(semesterCode: string): Promise<AdminSemesterCalendar> {
+	return adminRequest<AdminSemesterCalendar>(`/v1/admin/semester-calendars/${semesterCode}`);
+}
+
+export function createSemesterCalendar(
+	payload: AdminSemesterCalendarUpsertRequest
+): Promise<AdminSemesterCalendar> {
+	return adminRequest<AdminSemesterCalendar>('/v1/admin/semester-calendars', {
+		method: 'POST',
+		body: JSON.stringify(payload)
+	});
+}
+
+export function updateSemesterCalendar(
+	semesterCode: string,
+	payload: AdminSemesterCalendarUpsertRequest
+): Promise<AdminSemesterCalendar> {
+	return adminRequest<AdminSemesterCalendar>(`/v1/admin/semester-calendars/${semesterCode}`, {
+		method: 'PUT',
+		body: JSON.stringify(payload)
+	});
+}
+
+export function deleteSemesterCalendar(semesterCode: string): Promise<void> {
+	return adminRequest<void>(`/v1/admin/semester-calendars/${semesterCode}`, {
 		method: 'DELETE'
 	});
 }
