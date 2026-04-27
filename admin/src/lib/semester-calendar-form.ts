@@ -91,7 +91,7 @@ export function fromAdminSemesterCalendar(item: AdminSemesterCalendar): Semester
 						content: range.content
 					}))
 				: [createEmptyCustomWeekRange()]
-		};
+	};
 }
 
 function normalizeNumericInput(value: string | number | undefined): string {
