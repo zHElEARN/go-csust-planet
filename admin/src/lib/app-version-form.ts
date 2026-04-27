@@ -2,7 +2,7 @@ import type { AdminAppVersion, AdminAppVersionUpsertRequest } from '$lib/admin-a
 
 export type AppVersionFormState = {
 	platform: 'ios' | 'android';
-	versionCode: string;
+	versionCode: string | number | undefined;
 	versionName: string;
 	isForceUpdate: boolean;
 	releaseNotes: string;
@@ -34,13 +34,14 @@ export function fromAdminAppVersion(item: AdminAppVersion): AppVersionFormState 
 export function buildAppVersionPayload(
 	form: AppVersionFormState
 ): { payload: AdminAppVersionUpsertRequest; error: '' } | { payload: null; error: string } {
-	const versionCode = Number(form.versionCode.trim());
+	const versionCodeInput = String(form.versionCode ?? '').trim();
+	const versionCode = Number(versionCodeInput);
 	const versionName = form.versionName.trim();
 	const releaseNotes = form.releaseNotes.trim();
 	const downloadUrl = form.downloadUrl.trim();
 
 	if (
-		!form.versionCode.trim() ||
+		!versionCodeInput ||
 		!Number.isInteger(versionCode) ||
 		versionCode <= 0 ||
 		!versionName ||

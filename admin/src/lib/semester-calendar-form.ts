@@ -5,14 +5,14 @@ import type {
 } from '$lib/admin-api';
 
 export type NoteRowForm = {
-	row: string;
+	row: string | number | undefined;
 	content: string;
 	needNumber: boolean;
 };
 
 export type CustomWeekRangeForm = {
-	startRow: string;
-	endRow: string;
+	startRow: string | number | undefined;
+	endRow: string | number | undefined;
 	content: string;
 };
 
@@ -91,7 +91,11 @@ export function fromAdminSemesterCalendar(item: AdminSemesterCalendar): Semester
 						content: range.content
 					}))
 				: [createEmptyCustomWeekRange()]
-	};
+		};
+}
+
+function normalizeNumericInput(value: string | number | undefined): string {
+	return String(value ?? '').trim();
 }
 
 export function buildSemesterCalendarPayload(
@@ -123,7 +127,7 @@ export function buildSemesterCalendarPayload(
 
 	const notes = [];
 	for (const item of form.notes) {
-		const row = item.row.trim();
+		const row = normalizeNumericInput(item.row);
 		const content = item.content.trim();
 		if (!row && !content) {
 			continue;
@@ -143,8 +147,8 @@ export function buildSemesterCalendarPayload(
 
 	const customWeekRanges: CustomWeekRange[] = [];
 	for (const item of form.customWeekRanges) {
-		const startRow = item.startRow.trim();
-		const endRow = item.endRow.trim();
+		const startRow = normalizeNumericInput(item.startRow);
+		const endRow = normalizeNumericInput(item.endRow);
 		const content = item.content.trim();
 		if (!startRow && !endRow && !content) {
 			continue;
