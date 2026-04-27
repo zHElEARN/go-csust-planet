@@ -5,14 +5,14 @@ import type {
 } from '$lib/admin-api';
 
 export type NoteRowForm = {
-	row: string;
+	row: number;
 	content: string;
 	needNumber: boolean;
 };
 
 export type CustomWeekRangeForm = {
-	startRow: string;
-	endRow: string;
+	startRow: number;
+	endRow: number;
 	content: string;
 };
 
@@ -30,7 +30,7 @@ export type SemesterCalendarFormState = {
 
 export function createEmptyNote(): NoteRowForm {
 	return {
-		row: '',
+		row: NaN,
 		content: '',
 		needNumber: false
 	};
@@ -38,8 +38,8 @@ export function createEmptyNote(): NoteRowForm {
 
 export function createEmptyCustomWeekRange(): CustomWeekRangeForm {
 	return {
-		startRow: '',
-		endRow: '',
+		startRow: NaN,
+		endRow: NaN,
 		content: ''
 	};
 }
@@ -78,7 +78,7 @@ export function fromAdminSemesterCalendar(item: AdminSemesterCalendar): Semester
 		notes:
 			item.notes.length > 0
 				? item.notes.map((note) => ({
-						row: String(note.row),
+						row: note.row,
 						content: note.content,
 						needNumber: Boolean(note.needNumber)
 					}))
@@ -86,8 +86,8 @@ export function fromAdminSemesterCalendar(item: AdminSemesterCalendar): Semester
 		customWeekRanges:
 			item.customWeekRanges.length > 0
 				? item.customWeekRanges.map((range) => ({
-						startRow: String(range.startRow),
-						endRow: String(range.endRow),
+						startRow: range.startRow,
+						endRow: range.endRow,
 						content: range.content
 					}))
 				: [createEmptyCustomWeekRange()]
@@ -123,19 +123,18 @@ export function buildSemesterCalendarPayload(
 
 	const notes = [];
 	for (const item of form.notes) {
-		const row = item.row.trim();
+		const row = item.row;
 		const content = item.content.trim();
-		if (!row && !content) {
+		if (isNaN(row) && !content) {
 			continue;
 		}
 
-		const rowValue = Number(row);
-		if (!row || !Number.isInteger(rowValue) || rowValue <= 0 || !content) {
+		if (isNaN(row) || !Number.isInteger(row) || row <= 0 || !content) {
 			return { payload: null, error: '请填写有效的备注信息' };
 		}
 
 		notes.push({
-			row: rowValue,
+			row,
 			content,
 			needNumber: item.needNumber
 		});
@@ -143,34 +142,32 @@ export function buildSemesterCalendarPayload(
 
 	const customWeekRanges: CustomWeekRange[] = [];
 	for (const item of form.customWeekRanges) {
-		const startRow = item.startRow.trim();
-		const endRow = item.endRow.trim();
+		const startRow = item.startRow;
+		const endRow = item.endRow;
 		const content = item.content.trim();
-		if (!startRow && !endRow && !content) {
+		if (isNaN(startRow) && isNaN(endRow) && !content) {
 			continue;
 		}
 
-		const startRowValue = Number(startRow);
-		const endRowValue = Number(endRow);
 		if (
-			!startRow ||
-			!endRow ||
-			!content ||
-			!Number.isInteger(startRowValue) ||
-			!Number.isInteger(endRowValue) ||
-			startRowValue <= 0 ||
-			endRowValue <= 0
+			isNaN(startRow) ||
+			isNaN(endRow) ||
+			!Number.isInteger(startRow) ||
+			!Number.isInteger(endRow) ||
+			startRow <= 0 ||
+			endRow <= 0 ||
+			!content
 		) {
 			return { payload: null, error: '请填写有效的自定义周次范围' };
 		}
 
-		if (startRowValue > endRowValue) {
+		if (startRow > endRow) {
 			return { payload: null, error: '自定义周次范围的开始行不能大于结束行' };
 		}
 
 		customWeekRanges.push({
-			startRow: startRowValue,
-			endRow: endRowValue,
+			startRow,
+			endRow,
 			content
 		});
 	}
