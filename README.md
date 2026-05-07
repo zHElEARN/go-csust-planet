@@ -101,7 +101,7 @@
 
 欢迎大家为 go-csust-planet 做出贡献，您可以 Fork 项目，进行修改并提交 Pull Request。
 
-如果您在使用过程中遇到问题，或对 go-csust-planet 有任何建议，也欢迎提交 Issue来告知我们！
+如果您在使用过程中遇到问题，或对 go-csust-planet 有任何建议，也欢迎提交 Issue 来告知我们！
 
 ---
 
