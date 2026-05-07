@@ -30,6 +30,7 @@ func SetupRouter(deps Dependencies) *gin.Engine {
 		SkipPaths: []string{"/healthz"},
 	}))
 	r.Use(gin.Recovery())
+	r.Use(corsMiddleware())
 
 	r.GET("/healthz", deps.Handler.HealthCheck)
 

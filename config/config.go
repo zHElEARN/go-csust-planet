@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -22,6 +23,7 @@ type Config struct {
 	APNSPrivateKeyPath string
 	APNSEnvironment    string
 	APNSBundleID       string
+	CORSAllowedOrigins []string
 	AppMode            string
 	Port               string
 	SwaggerPassword    string
@@ -50,10 +52,34 @@ func InitConfig() {
 		APNSPrivateKeyPath: getEnvOrFatal("APNS_PRIVATE_KEY_PATH"),
 		APNSEnvironment:    getEnvOrFatal("APNS_ENVIRONMENT"),
 		APNSBundleID:       getEnvOrFatal("APNS_BUNDLE_ID"),
+		CORSAllowedOrigins: parseCommaSeparatedEnv("CORS_ALLOWED_ORIGINS"),
 		AppMode:            getEnvOrDefault("APP_MODE", "development"),
 		Port:               getEnvOrDefault("PORT", "7241"),
 		SwaggerPassword:    getEnvOrFatal("SWAGGER_PASSWORD"),
 	}
+}
+
+func parseCommaSeparatedEnv(key string) []string {
+	raw := os.Getenv(key)
+	if raw == "" {
+		return nil
+	}
+
+	seen := make(map[string]struct{})
+	values := make([]string, 0)
+	for _, item := range strings.Split(raw, ",") {
+		value := strings.TrimSpace(item)
+		if value == "" {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		values = append(values, value)
+	}
+
+	return values
 }
 
 func getEnvOrDefault(key, defaultValue string) string {
