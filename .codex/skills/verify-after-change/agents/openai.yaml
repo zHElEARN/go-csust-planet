@@ -1,0 +1,4 @@
+interface:
+  display_name: "代码变更验证"
+  short_description: "代码修改后编译与测试验证"
+  default_prompt: "使用 $verify-after-change 在代码修改后运行必需的编译和测试验证。"
