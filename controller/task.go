@@ -44,11 +44,11 @@ func (h *Handler) SyncElectricityTask(c *gin.Context) {
 		return
 	}
 
-	err = h.electricityTaskService.Sync(userID, req)
+	err = h.electricityTaskService.Sync(c.Request.Context(), userID, req)
 	if err != nil {
 		switch {
-		case errors.Is(err, service.ErrInvalidBuilding):
-			response.ResponseError(c, http.StatusBadRequest, "无效的校区或楼栋")
+		case errors.Is(err, service.ErrInvalidRoom):
+			response.ResponseError(c, http.StatusBadRequest, "无效的校区、楼栋或宿舍")
 		case errors.Is(err, service.ErrInvalidNotifyTime):
 			response.ResponseError(c, http.StatusBadRequest, "notifyTime 格式错误，请使用 HH:mm 格式")
 		default:

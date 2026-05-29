@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -8,7 +9,6 @@ import (
 	"github.com/zHElEARN/go-csust-planet/dto"
 	"github.com/zHElEARN/go-csust-planet/model"
 	"github.com/zHElEARN/go-csust-planet/utils/apns"
-	"github.com/zHElEARN/go-csust-planet/utils/campuscard"
 	"github.com/zHElEARN/go-csust-planet/utils/sso"
 )
 
@@ -17,7 +17,7 @@ type AuthService interface {
 }
 
 type ElectricityTaskService interface {
-	Sync(userID uuid.UUID, req dto.SyncElectricityTaskRequest) error
+	Sync(ctx context.Context, userID uuid.UUID, req dto.SyncElectricityTaskRequest) error
 }
 
 type AdminAppVersionService interface {
@@ -48,12 +48,12 @@ type TokenGenerator interface {
 	GenerateToken(userID uuid.UUID, studentID string, duration time.Duration) (string, error)
 }
 
-type BuildingResolver interface {
-	GetBuildingByCampusName(campusName, buildingName string) (campuscard.Building, error)
+type ElectricityRoomValidator interface {
+	ValidateRoom(ctx context.Context, campusName, buildingName, roomName string) error
 }
 
 type ElectricityFetcher interface {
-	GetElectricity(building campuscard.Building, roomNum string) (float64, error)
+	GetElectricity(ctx context.Context, campusName, buildingName, roomName string) (float64, error)
 }
 
 type NotificationSender interface {
@@ -72,16 +72,16 @@ func (f TokenGeneratorFunc) GenerateToken(userID uuid.UUID, studentID string, du
 	return f(userID, studentID, duration)
 }
 
-type BuildingResolverFunc func(campusName, buildingName string) (campuscard.Building, error)
+type ElectricityRoomValidatorFunc func(ctx context.Context, campusName, buildingName, roomName string) error
 
-func (f BuildingResolverFunc) GetBuildingByCampusName(campusName, buildingName string) (campuscard.Building, error) {
-	return f(campusName, buildingName)
+func (f ElectricityRoomValidatorFunc) ValidateRoom(ctx context.Context, campusName, buildingName, roomName string) error {
+	return f(ctx, campusName, buildingName, roomName)
 }
 
-type ElectricityFetcherFunc func(building campuscard.Building, roomNum string) (float64, error)
+type ElectricityFetcherFunc func(ctx context.Context, campusName, buildingName, roomName string) (float64, error)
 
-func (f ElectricityFetcherFunc) GetElectricity(building campuscard.Building, roomNum string) (float64, error) {
-	return f(building, roomNum)
+func (f ElectricityFetcherFunc) GetElectricity(ctx context.Context, campusName, buildingName, roomName string) (float64, error) {
+	return f(ctx, campusName, buildingName, roomName)
 }
 
 type NotificationSenderFunc func(notification apns.PushNotification) error

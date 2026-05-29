@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -8,6 +10,7 @@ import (
 
 	"github.com/zHElEARN/go-csust-planet/dto"
 	"github.com/zHElEARN/go-csust-planet/model"
+	"github.com/zHElEARN/go-csust-planet/utils/csustkit"
 )
 
 const (
@@ -16,31 +19,36 @@ const (
 )
 
 type electricityTaskService struct {
-	db               *gorm.DB
-	buildingResolver BuildingResolver
-	now              func() time.Time
+	db            *gorm.DB
+	roomValidator ElectricityRoomValidator
+	now           func() time.Time
 }
 
-func NewElectricityTaskService(db *gorm.DB, buildingResolver BuildingResolver, now func() time.Time) ElectricityTaskService {
+func NewElectricityTaskService(db *gorm.DB, roomValidator ElectricityRoomValidator, now func() time.Time) ElectricityTaskService {
 	if now == nil {
 		now = time.Now
 	}
 
 	return &electricityTaskService{
-		db:               db,
-		buildingResolver: buildingResolver,
-		now:              now,
+		db:            db,
+		roomValidator: roomValidator,
+		now:           now,
 	}
 }
 
-func (s *electricityTaskService) Sync(userID uuid.UUID, req dto.SyncElectricityTaskRequest) error {
+func (s *electricityTaskService) Sync(ctx context.Context, userID uuid.UUID, req dto.SyncElectricityTaskRequest) error {
 	for _, task := range req.Tasks {
-		if _, err := s.buildingResolver.GetBuildingByCampusName(task.Campus, task.Building); err != nil {
-			return ErrInvalidBuilding
-		}
-
 		if _, err := time.Parse("15:04", task.NotifyTime); err != nil {
 			return ErrInvalidNotifyTime
+		}
+
+		if err := s.roomValidator.ValidateRoom(ctx, task.Campus, task.Building, task.Room); err != nil {
+			if errors.Is(err, csustkit.ErrCampusNotFound) ||
+				errors.Is(err, csustkit.ErrBuildingNotFound) ||
+				errors.Is(err, csustkit.ErrRoomNotFound) {
+				return ErrInvalidRoom
+			}
+			return err
 		}
 	}
 

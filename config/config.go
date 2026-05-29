@@ -9,24 +9,26 @@ import (
 )
 
 type Config struct {
-	DBHost             string
-	DBPort             string
-	DBUser             string
-	DBPassword         string
-	DBName             string
-	DBSSLMode          string
-	DBTimeZone         string
-	JWTSecret          string
-	AdminBearerToken   string
-	APNSTeamIdentifier string
-	APNSKeyIdentifier  string
-	APNSPrivateKeyPath string
-	APNSEnvironment    string
-	APNSBundleID       string
-	CORSAllowedOrigins []string
-	AppMode            string
-	Port               string
-	SwaggerPassword    string
+	DBHost                  string
+	DBPort                  string
+	DBUser                  string
+	DBPassword              string
+	DBName                  string
+	DBSSLMode               string
+	DBTimeZone              string
+	JWTSecret               string
+	AdminBearerToken        string
+	APNSTeamIdentifier      string
+	APNSKeyIdentifier       string
+	APNSPrivateKeyPath      string
+	APNSEnvironment         string
+	APNSBundleID            string
+	CORSAllowedOrigins      []string
+	AppMode                 string
+	Port                    string
+	SwaggerPassword         string
+	CSUSTAuthserverUsername string
+	CSUSTAuthserverPassword string
 }
 
 var AppConfig *Config
@@ -38,24 +40,26 @@ func InitConfig() {
 	}
 
 	AppConfig = &Config{
-		DBHost:             getEnvOrFatal("DB_HOST"),
-		DBPort:             getEnvOrFatal("DB_PORT"),
-		DBUser:             getEnvOrFatal("DB_USER"),
-		DBPassword:         getEnvOrFatal("DB_PASSWORD"),
-		DBName:             getEnvOrFatal("DB_NAME"),
-		DBSSLMode:          getEnvOrFatal("DB_SSLMODE"),
-		DBTimeZone:         getEnvOrFatal("DB_TIMEZONE"),
-		JWTSecret:          getEnvOrFatal("JWT_SECRET"),
-		AdminBearerToken:   getEnvOrFatal("ADMIN_BEARER_TOKEN"),
-		APNSTeamIdentifier: getEnvOrFatal("APNS_TEAM_IDENTIFIER"),
-		APNSKeyIdentifier:  getEnvOrFatal("APNS_KEY_IDENTIFIER"),
-		APNSPrivateKeyPath: getEnvOrFatal("APNS_PRIVATE_KEY_PATH"),
-		APNSEnvironment:    getEnvOrFatal("APNS_ENVIRONMENT"),
-		APNSBundleID:       getEnvOrFatal("APNS_BUNDLE_ID"),
-		CORSAllowedOrigins: parseCommaSeparatedEnv("CORS_ALLOWED_ORIGINS"),
-		AppMode:            getEnvOrDefault("APP_MODE", "development"),
-		Port:               getEnvOrDefault("PORT", "7241"),
-		SwaggerPassword:    getEnvOrFatal("SWAGGER_PASSWORD"),
+		DBHost:                  getEnvOrFatal("DB_HOST"),
+		DBPort:                  getEnvOrFatal("DB_PORT"),
+		DBUser:                  getEnvOrFatal("DB_USER"),
+		DBPassword:              getEnvOrFatal("DB_PASSWORD"),
+		DBName:                  getEnvOrFatal("DB_NAME"),
+		DBSSLMode:               getEnvOrFatal("DB_SSLMODE"),
+		DBTimeZone:              getEnvOrFatal("DB_TIMEZONE"),
+		JWTSecret:               getEnvOrFatal("JWT_SECRET"),
+		AdminBearerToken:        getEnvOrFatal("ADMIN_BEARER_TOKEN"),
+		APNSTeamIdentifier:      getEnvOrFatal("APNS_TEAM_IDENTIFIER"),
+		APNSKeyIdentifier:       getEnvOrFatal("APNS_KEY_IDENTIFIER"),
+		APNSPrivateKeyPath:      getEnvOrFatal("APNS_PRIVATE_KEY_PATH"),
+		APNSEnvironment:         getEnvOrFatal("APNS_ENVIRONMENT"),
+		APNSBundleID:            getEnvOrFatal("APNS_BUNDLE_ID"),
+		CORSAllowedOrigins:      parseCommaSeparatedEnv("CORS_ALLOWED_ORIGINS"),
+		AppMode:                 getEnvOrDefault("APP_MODE", "development"),
+		Port:                    getEnvOrDefault("PORT", "7241"),
+		SwaggerPassword:         getEnvOrFatal("SWAGGER_PASSWORD"),
+		CSUSTAuthserverUsername: getEnvOrFatal("CSUST_AUTHSERVER_USERNAME"),
+		CSUSTAuthserverPassword: getEnvOrFatal("CSUST_AUTHSERVER_PASSWORD"),
 	}
 }
 

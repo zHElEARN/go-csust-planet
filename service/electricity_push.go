@@ -12,7 +12,7 @@ import (
 
 	"github.com/zHElEARN/go-csust-planet/model"
 	"github.com/zHElEARN/go-csust-planet/utils/apns"
-	"github.com/zHElEARN/go-csust-planet/utils/campuscard"
+	"github.com/zHElEARN/go-csust-planet/utils/csustkit"
 )
 
 const (
@@ -29,11 +29,10 @@ type ElectricityPushConfig struct {
 }
 
 type electricityPushService struct {
-	db               *gorm.DB
-	buildingResolver BuildingResolver
-	electricity      ElectricityFetcher
-	notifier         NotificationSender
-	config           ElectricityPushConfig
+	db          *gorm.DB
+	electricity ElectricityFetcher
+	notifier    NotificationSender
+	config      ElectricityPushConfig
 }
 
 type taskWithToken struct {
@@ -51,7 +50,6 @@ func DefaultElectricityPushConfig() ElectricityPushConfig {
 
 func NewElectricityPushService(
 	db *gorm.DB,
-	buildingResolver BuildingResolver,
 	electricity ElectricityFetcher,
 	notifier NotificationSender,
 	cfg ElectricityPushConfig,
@@ -67,11 +65,10 @@ func NewElectricityPushService(
 	}
 
 	return &electricityPushService{
-		db:               db,
-		buildingResolver: buildingResolver,
-		electricity:      electricity,
-		notifier:         notifier,
-		config:           cfg,
+		db:          db,
+		electricity: electricity,
+		notifier:    notifier,
+		config:      cfg,
 	}
 }
 
@@ -150,7 +147,7 @@ func (s *electricityPushService) processSingleTask(task taskWithToken, batchStar
 
 	errCh := make(chan error, 1)
 	go func() {
-		electricityVal, err := s.fetchRealElectricity(task.Campus, task.Building, task.Room)
+		electricityVal, err := s.fetchRealElectricity(ctx, task.Campus, task.Building, task.Room)
 		if err != nil {
 			errCh <- fmt.Errorf("获取电量失败: %w", err)
 			return
@@ -174,7 +171,7 @@ func (s *electricityPushService) processSingleTask(task taskWithToken, batchStar
 	}
 
 	if taskErr != nil {
-		if errors.Is(taskErr, campuscard.ErrRoomNotFound) {
+		if errors.Is(taskErr, csustkit.ErrRoomNotFound) {
 			_ = s.db.Delete(&model.ElectricityTask{}, "id = ?", task.ID).Error
 			return false
 		}
@@ -217,13 +214,8 @@ func (s *electricityPushService) processSingleTask(task taskWithToken, batchStar
 	return false
 }
 
-func (s *electricityPushService) fetchRealElectricity(campusName, buildingName, roomNum string) (string, error) {
-	targetBuilding, err := s.buildingResolver.GetBuildingByCampusName(campusName, buildingName)
-	if err != nil {
-		return "", err
-	}
-
-	balance, err := s.electricity.GetElectricity(targetBuilding, roomNum)
+func (s *electricityPushService) fetchRealElectricity(ctx context.Context, campusName, buildingName, roomNum string) (string, error) {
+	balance, err := s.electricity.GetElectricity(ctx, campusName, buildingName, roomNum)
 	if err != nil {
 		return "", err
 	}

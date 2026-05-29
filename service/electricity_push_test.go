@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -10,7 +11,7 @@ import (
 
 	"github.com/zHElEARN/go-csust-planet/model"
 	"github.com/zHElEARN/go-csust-planet/utils/apns"
-	"github.com/zHElEARN/go-csust-planet/utils/campuscard"
+	"github.com/zHElEARN/go-csust-planet/utils/csustkit"
 )
 
 func TestElectricityPushServicePollAndProcessSuccess(t *testing.T) {
@@ -32,17 +33,7 @@ func TestElectricityPushServicePollAndProcessSuccess(t *testing.T) {
 	var pushed apns.PushNotification
 	pushService := NewElectricityPushService(
 		db,
-		BuildingResolverFunc(func(campusName, buildingName string) (campuscard.Building, error) {
-			return campuscard.Building{
-				ID:   "building-1",
-				Name: buildingName,
-				Campus: campuscard.Campus{
-					ID:          "campus-1",
-					DisplayName: campusName,
-				},
-			}, nil
-		}),
-		ElectricityFetcherFunc(func(building campuscard.Building, roomNum string) (float64, error) {
+		ElectricityFetcherFunc(func(ctx context.Context, campusName, buildingName, roomName string) (float64, error) {
 			return 12.5, nil
 		}),
 		NotificationSenderFunc(func(notification apns.PushNotification) error {
@@ -91,11 +82,8 @@ func TestElectricityPushServiceDeletesTaskWhenRoomIsMissing(t *testing.T) {
 
 	pushService := NewElectricityPushService(
 		db,
-		BuildingResolverFunc(func(campusName, buildingName string) (campuscard.Building, error) {
-			return campuscard.Building{Name: buildingName}, nil
-		}),
-		ElectricityFetcherFunc(func(building campuscard.Building, roomNum string) (float64, error) {
-			return 0, campuscard.ErrRoomNotFound
+		ElectricityFetcherFunc(func(ctx context.Context, campusName, buildingName, roomName string) (float64, error) {
+			return 0, csustkit.ErrRoomNotFound
 		}),
 		NotificationSenderFunc(func(notification apns.PushNotification) error {
 			return nil
@@ -134,10 +122,7 @@ func TestElectricityPushServiceDeletesDeviceTokenOnBadAPNsToken(t *testing.T) {
 
 	pushService := NewElectricityPushService(
 		db,
-		BuildingResolverFunc(func(campusName, buildingName string) (campuscard.Building, error) {
-			return campuscard.Building{Name: buildingName}, nil
-		}),
-		ElectricityFetcherFunc(func(building campuscard.Building, roomNum string) (float64, error) {
+		ElectricityFetcherFunc(func(ctx context.Context, campusName, buildingName, roomName string) (float64, error) {
 			return 9.9, nil
 		}),
 		NotificationSenderFunc(func(notification apns.PushNotification) error {
@@ -178,10 +163,7 @@ func TestElectricityPushServiceResetsTaskToPendingOnTimeout(t *testing.T) {
 
 	pushService := NewElectricityPushService(
 		db,
-		BuildingResolverFunc(func(campusName, buildingName string) (campuscard.Building, error) {
-			return campuscard.Building{Name: buildingName}, nil
-		}),
-		ElectricityFetcherFunc(func(building campuscard.Building, roomNum string) (float64, error) {
+		ElectricityFetcherFunc(func(ctx context.Context, campusName, buildingName, roomName string) (float64, error) {
 			time.Sleep(50 * time.Millisecond)
 			return 8.8, nil
 		}),

@@ -1,14 +1,16 @@
 package main
 
 import (
+	"context"
 	"log"
+	"time"
 
 	"github.com/zHElEARN/go-csust-planet/config"
 	"github.com/zHElEARN/go-csust-planet/controller"
 	"github.com/zHElEARN/go-csust-planet/router"
 	"github.com/zHElEARN/go-csust-planet/service"
 	"github.com/zHElEARN/go-csust-planet/utils/apns"
-	"github.com/zHElEARN/go-csust-planet/utils/campuscard"
+	"github.com/zHElEARN/go-csust-planet/utils/csustkit"
 	"github.com/zHElEARN/go-csust-planet/utils/jwt"
 	"github.com/zHElEARN/go-csust-planet/utils/sso"
 	"github.com/zHElEARN/go-csust-planet/worker"
@@ -23,7 +25,17 @@ func main() {
 	config.InitConfig()
 	config.InitDB()
 	apns.InitAPNS()
-	campuscard.InitBuildingStoreBlocking()
+
+	electricityInitCtx, electricityInitCancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer electricityInitCancel()
+	electricityClient, err := csustkit.NewAuthenticatedElectricityClient(
+		electricityInitCtx,
+		config.AppConfig.CSUSTAuthserverUsername,
+		config.AppConfig.CSUSTAuthserverPassword,
+	)
+	if err != nil {
+		log.Fatalf("[FATAL] 校园卡系统登录失败: %v", err)
+	}
 
 	authService := service.NewAuthService(
 		config.DB,
@@ -32,15 +44,14 @@ func main() {
 	)
 	electricityTaskService := service.NewElectricityTaskService(
 		config.DB,
-		service.BuildingResolverFunc(campuscard.GetBuildingByCampusName),
+		electricityClient,
 		nil,
 	)
 	adminAppVersionService := service.NewAdminAppVersionService(config.DB)
 	pushConfig := service.DefaultElectricityPushConfig()
 	electricityPushService := service.NewElectricityPushService(
 		config.DB,
-		service.BuildingResolverFunc(campuscard.GetBuildingByCampusName),
-		service.ElectricityFetcherFunc(campuscard.GetElectricity),
+		electricityClient,
 		service.NotificationSenderFunc(apns.SendPushNotification),
 		pushConfig,
 	)
@@ -61,7 +72,7 @@ func main() {
 		AdminBearerToken: config.AppConfig.AdminBearerToken,
 	})
 
-	err := r.Run(":" + config.AppConfig.Port)
+	err = r.Run(":" + config.AppConfig.Port)
 	if err != nil {
 		log.Fatalf("[FATAL] 服务器启动失败: %v", err)
 	}

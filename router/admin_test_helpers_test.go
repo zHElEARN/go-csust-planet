@@ -2,6 +2,7 @@ package router
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http/httptest"
@@ -28,7 +29,7 @@ func (stubAuthService) Login(string) (dto.LoginResponse, error) {
 
 type stubElectricityTaskService struct{}
 
-func (stubElectricityTaskService) Sync(uuid.UUID, dto.SyncElectricityTaskRequest) error {
+func (stubElectricityTaskService) Sync(context.Context, uuid.UUID, dto.SyncElectricityTaskRequest) error {
 	return errors.New("not implemented")
 }
 

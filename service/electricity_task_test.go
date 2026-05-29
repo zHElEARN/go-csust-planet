@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -9,7 +10,7 @@ import (
 
 	"github.com/zHElEARN/go-csust-planet/dto"
 	"github.com/zHElEARN/go-csust-planet/model"
-	"github.com/zHElEARN/go-csust-planet/utils/campuscard"
+	"github.com/zHElEARN/go-csust-planet/utils/csustkit"
 )
 
 func TestElectricityTaskServiceSyncDiffsTasksAndSchedulesNewOnes(t *testing.T) {
@@ -37,22 +38,17 @@ func TestElectricityTaskServiceSyncDiffsTasksAndSchedulesNewOnes(t *testing.T) {
 	})
 
 	now := time.Date(2026, time.April, 26, 9, 0, 0, 0, time.UTC)
+	var validatedRooms []string
 	taskService := NewElectricityTaskService(
 		db,
-		BuildingResolverFunc(func(campusName, buildingName string) (campuscard.Building, error) {
-			return campuscard.Building{
-				ID:   "building-1",
-				Name: buildingName,
-				Campus: campuscard.Campus{
-					ID:          "campus-1",
-					DisplayName: campusName,
-				},
-			}, nil
+		ElectricityRoomValidatorFunc(func(ctx context.Context, campusName, buildingName, roomName string) error {
+			validatedRooms = append(validatedRooms, roomName)
+			return nil
 		}),
 		func() time.Time { return now },
 	)
 
-	err := taskService.Sync(user.ID, dto.SyncElectricityTaskRequest{
+	err := taskService.Sync(context.Background(), user.ID, dto.SyncElectricityTaskRequest{
 		DeviceToken: deviceToken.Token,
 		Tasks: []dto.ElectricityTaskOption{
 			{NotifyTime: "08:30", Campus: "云塘", Building: "至诚轩1栋", Room: "101"},
@@ -61,6 +57,9 @@ func TestElectricityTaskServiceSyncDiffsTasksAndSchedulesNewOnes(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatalf("expected sync to succeed: %v", err)
+	}
+	if len(validatedRooms) != 2 {
+		t.Fatalf("expected 2 room validations, got %d", len(validatedRooms))
 	}
 
 	var tasks []model.ElectricityTask
@@ -100,31 +99,58 @@ func TestElectricityTaskServiceSyncValidatesInput(t *testing.T) {
 	db := openServiceTestDB(t)
 	taskService := NewElectricityTaskService(
 		db,
-		BuildingResolverFunc(func(campusName, buildingName string) (campuscard.Building, error) {
-			return campuscard.Building{}, errors.New("invalid building")
+		ElectricityRoomValidatorFunc(func(ctx context.Context, campusName, buildingName, roomName string) error {
+			return csustkit.ErrRoomNotFound
 		}),
 		nil,
 	)
 
-	err := taskService.Sync(uuid.New(), dto.SyncElectricityTaskRequest{
+	err := taskService.Sync(context.Background(), uuid.New(), dto.SyncElectricityTaskRequest{
 		DeviceToken: "device-token",
 		Tasks: []dto.ElectricityTaskOption{
 			{NotifyTime: "08:00", Campus: "云塘", Building: "未知楼栋", Room: "101"},
 		},
 	})
-	if !errors.Is(err, ErrInvalidBuilding) {
-		t.Fatalf("expected ErrInvalidBuilding, got %v", err)
+	if !errors.Is(err, ErrInvalidRoom) {
+		t.Fatalf("expected ErrInvalidRoom, got %v", err)
+	}
+	var taskCount int64
+	if err := db.Model(&model.ElectricityTask{}).Count(&taskCount).Error; err != nil {
+		t.Fatalf("failed to count electricity tasks: %v", err)
+	}
+	if taskCount != 0 {
+		t.Fatalf("expected invalid room to skip transaction writes, got %d tasks", taskCount)
 	}
 
+	upstreamErr := errors.New("campus card unavailable")
 	taskService = NewElectricityTaskService(
 		db,
-		BuildingResolverFunc(func(campusName, buildingName string) (campuscard.Building, error) {
-			return campuscard.Building{}, nil
+		ElectricityRoomValidatorFunc(func(ctx context.Context, campusName, buildingName, roomName string) error {
+			return upstreamErr
+		}),
+		nil,
+	)
+	err = taskService.Sync(context.Background(), uuid.New(), dto.SyncElectricityTaskRequest{
+		DeviceToken: "device-token",
+		Tasks: []dto.ElectricityTaskOption{
+			{NotifyTime: "08:00", Campus: "云塘", Building: "至诚轩1栋", Room: "101"},
+		},
+	})
+	if !errors.Is(err, upstreamErr) {
+		t.Fatalf("expected upstream error, got %v", err)
+	}
+
+	var validatorCalled bool
+	taskService = NewElectricityTaskService(
+		db,
+		ElectricityRoomValidatorFunc(func(ctx context.Context, campusName, buildingName, roomName string) error {
+			validatorCalled = true
+			return nil
 		}),
 		nil,
 	)
 
-	err = taskService.Sync(uuid.New(), dto.SyncElectricityTaskRequest{
+	err = taskService.Sync(context.Background(), uuid.New(), dto.SyncElectricityTaskRequest{
 		DeviceToken: "device-token",
 		Tasks: []dto.ElectricityTaskOption{
 			{NotifyTime: "8am", Campus: "云塘", Building: "至诚轩1栋", Room: "101"},
@@ -132,5 +158,8 @@ func TestElectricityTaskServiceSyncValidatesInput(t *testing.T) {
 	})
 	if !errors.Is(err, ErrInvalidNotifyTime) {
 		t.Fatalf("expected ErrInvalidNotifyTime, got %v", err)
+	}
+	if validatorCalled {
+		t.Fatalf("expected invalid notify time to skip room validation")
 	}
 }
