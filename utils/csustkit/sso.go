@@ -2,6 +2,7 @@ package csustkit
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -19,6 +20,31 @@ type SSOHelper struct {
 type SSOLoginForm struct {
 	PwdEncryptSalt string
 	Execution      string
+}
+
+func (h *SSOHelper) IsLoggedIn(ctx context.Context) bool {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, h.client.makeURL(ServiceEhall, "/getLoginUser"), nil)
+	if err != nil {
+		return false
+	}
+
+	resp, err := h.client.httpClient.Do(req)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return false
+	}
+
+	var loginResp struct {
+		Data *json.RawMessage `json:"data"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&loginResp); err != nil {
+		return false
+	}
+	return loginResp.Data != nil && string(*loginResp.Data) != "null"
 }
 
 func (h *SSOHelper) GetLoginForm(ctx context.Context) (SSOLoginForm, error) {
@@ -116,6 +142,9 @@ func (h *SSOHelper) LoginToCampusCard(ctx context.Context) (string, error) {
 	}
 	finalURL := resp.Request.URL
 	if !strings.HasPrefix(finalURL.String(), h.client.makeURL(ServiceCampusCard, "/plat")) {
+		if finalURL.Host == "authserver.csust.edu.cn" && strings.HasPrefix(finalURL.Path, "/authserver/login") {
+			return "", ErrSSONotLoggedIn
+		}
 		return "", fmt.Errorf("登录校园卡系统失败: 重定向URL异常: %s", finalURL.String())
 	}
 

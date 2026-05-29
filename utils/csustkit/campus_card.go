@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 const (
@@ -18,8 +19,9 @@ const (
 )
 
 type CampusCardHelper struct {
-	client *Client
-	token  string
+	client  *Client
+	tokenMu sync.RWMutex
+	token   string
 }
 
 type Campus struct {
@@ -50,6 +52,25 @@ func Campuses() []Campus {
 	return []Campus{CampusYuntang, CampusJinpenling}
 }
 
+func (h *CampusCardHelper) IsLoggedIn(ctx context.Context) bool {
+	token := h.getToken()
+	if token == "" {
+		return false
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, h.client.makeURL(ServiceCampusCard, "/berserker-base/user?synAccessSource=h5"), nil)
+	if err != nil {
+		return false
+	}
+	req.Header.Set("synjones-auth", "bearer "+token)
+
+	var profileResp baseResponse[json.RawMessage]
+	if err := h.doJSON(req, &profileResp); err != nil {
+		return false
+	}
+	return profileResp.Code != http.StatusUnauthorized && profileResp.Data != nil
+}
+
 func (h *CampusCardHelper) SyncToken(ctx context.Context, ticket string) error {
 	values := url.Values{}
 	values.Set("username", ticket)
@@ -76,7 +97,7 @@ func (h *CampusCardHelper) SyncToken(ctx context.Context, ticket string) error {
 		return fmt.Errorf("同步校园卡令牌失败: 响应缺少access_token")
 	}
 
-	h.token = tokenResp.AccessToken
+	h.setToken(tokenResp.AccessToken)
 	return nil
 }
 
@@ -179,8 +200,9 @@ func roundElectricity(value float64) float64 {
 }
 
 func (h *CampusCardHelper) newChargeRequest(ctx context.Context, parameters map[string]string) (*http.Request, error) {
-	if h.token == "" {
-		return nil, fmt.Errorf("校园卡系统未登录")
+	token := h.getToken()
+	if token == "" {
+		return nil, ErrCampusCardNotLoggedIn
 	}
 
 	values := url.Values{}
@@ -194,8 +216,20 @@ func (h *CampusCardHelper) newChargeRequest(ctx context.Context, parameters map[
 	}
 	req.Header.Set("Authorization", campusCardChargeAuthorization)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("synjones-auth", "bearer "+h.token)
+	req.Header.Set("synjones-auth", "bearer "+token)
 	return req, nil
+}
+
+func (h *CampusCardHelper) getToken() string {
+	h.tokenMu.RLock()
+	defer h.tokenMu.RUnlock()
+	return h.token
+}
+
+func (h *CampusCardHelper) setToken(token string) {
+	h.tokenMu.Lock()
+	defer h.tokenMu.Unlock()
+	h.token = token
 }
 
 func (h *CampusCardHelper) doJSON(req *http.Request, target any) error {
@@ -210,6 +244,9 @@ func (h *CampusCardHelper) doJSON(req *http.Request, target any) error {
 		return err
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		if resp.StatusCode == http.StatusUnauthorized {
+			return ErrCampusCardNotLoggedIn
+		}
 		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	if err := json.Unmarshal(body, target); err != nil {
@@ -220,6 +257,11 @@ func (h *CampusCardHelper) doJSON(req *http.Request, target any) error {
 
 type tokenResponse struct {
 	AccessToken string `json:"access_token"`
+}
+
+type baseResponse[T any] struct {
+	Code int `json:"code"`
+	Data *T  `json:"data"`
 }
 
 type baseQueryResponse[T any] struct {
@@ -233,7 +275,7 @@ type baseQueryResponse[T any] struct {
 
 func (r baseQueryResponse[T]) errIfUnauthorized() error {
 	if r.Code == http.StatusUnauthorized {
-		return fmt.Errorf("校园卡系统未登录")
+		return ErrCampusCardNotLoggedIn
 	}
 	return nil
 }
