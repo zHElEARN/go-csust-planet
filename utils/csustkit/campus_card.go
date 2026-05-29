@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -170,7 +171,11 @@ func (h *CampusCardHelper) GetElectricity(ctx context.Context, room Room) (float
 	if err != nil {
 		return 0, fmt.Errorf("解析已用电量失败: %w", err)
 	}
-	return allValue - usedValue, nil
+	return roundElectricity(allValue - usedValue), nil
+}
+
+func roundElectricity(value float64) float64 {
+	return math.Round(value*100) / 100
 }
 
 func (h *CampusCardHelper) newChargeRequest(ctx context.Context, parameters map[string]string) (*http.Request, error) {

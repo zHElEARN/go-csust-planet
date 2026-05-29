@@ -87,3 +87,23 @@ func TestElectricityClientReturnsNotFoundErrors(t *testing.T) {
 		t.Fatalf("expected ErrRoomNotFound, got %v", err)
 	}
 }
+
+func TestRoundElectricity(t *testing.T) {
+	tests := []struct {
+		name string
+		in   float64
+		want float64
+	}{
+		{name: "round down", in: 12.344, want: 12.34},
+		{name: "round up", in: 12.345, want: 12.35},
+		{name: "keep two decimals", in: 12.3, want: 12.3},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := roundElectricity(tt.in); got != tt.want {
+				t.Fatalf("expected %v, got %v", tt.want, got)
+			}
+		})
+	}
+}
