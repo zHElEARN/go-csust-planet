@@ -54,6 +54,7 @@
    - JWT 密钥 (`JWT_SECRET`) 与 后台管理 Token (`ADMIN_BEARER_TOKEN`)
    - APNs 凭据信息 (`APNS_TEAM_IDENTIFIER`, `APNS_KEY_IDENTIFIER`, `APNS_PRIVATE_KEY_PATH` 等)
    - Swagger 文档访问密码 (`SWAGGER_PASSWORD`)
+   - 长沙理工大学统一身份认证账号密码 (`CSUST_AUTHSERVER_USERNAME`, `CSUST_AUTHSERVER_PASSWORD`)
 
    Swagger 文档会始终保持开启，访问地址为 `/swagger/index.html`，并使用 Basic Auth 保护：
    - 用户名固定为 `swagger`
