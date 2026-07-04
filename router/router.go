@@ -41,17 +41,6 @@ func SetupRouter(deps Dependencies) *gin.Engine {
 	}))
 	swaggerGroup.GET("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	taskGroup := v1.Group("/task")
-	taskGroup.Use(middleware.AuthMiddleware())
-	{
-		taskGroup.POST("/electricity", deps.Handler.SyncElectricityTask)
-	}
-
-	authGroup := v1.Group("/auth")
-	{
-		authGroup.POST("/login", deps.Handler.Login)
-	}
-
 	configGroup := v1.Group("/config")
 	{
 		configGroup.GET("/announcements", deps.Handler.GetAnnouncements)

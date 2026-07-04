@@ -7,8 +7,6 @@ services:
       - production.env
     ports:
       - "7242:7242"
-    volumes:
-      - ./AuthKey_XXXXXXXXXX.p8:/app/secrets/AuthKey_XXXXXXXXXX.p8:ro
     deploy:
       resources:
         reservations:
@@ -23,8 +21,6 @@ services:
       - development.env
     ports:
       - "7241:7241"
-    volumes:
-      - ./AuthKey_XXXXXXXXXX.p8:/app/secrets/AuthKey_XXXXXXXXXX.p8:ro
     deploy:
       resources:
         reservations:

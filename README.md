@@ -1,21 +1,18 @@
 # go-csust-planet
 
-这是 [长理星球](https://github.com/zHElEARN/CSUSTPlanet) 的配套后端项目，基于 Go 和 Svelte 开发，为移动端提供数据支持与推送服务。
+这是 [长理星球](https://github.com/zHElEARN/CSUSTPlanet) 的配套后端项目，基于 Go 和 Svelte 开发，为移动端提供静态配置数据支持。
 
 ## 功能特性
 
 本后端项目主要提供以下功能支持：
 
-- 统一身份认证：支持对接学校单点登录系统，处理用户登录及 JWT 鉴权。
-- 电量实时监控：定时同步宿舍电量数据，并在用户设置得时间点通过 APNs 发送实时推送提醒。
 - 校历与配置管理：提供学期校历、校园地图标注点、公告发布以及应用版本检查等配置信息。
-- 数据同步：维护用户设备 Token，确保推送服务的准确触达。
 - 后台管理：提供 Web 端管理页面与配套 API。
 
 ## 构建
 
 > [!IMPORTANT]
-> **构建要求**：本项目需要连接 PostgreSQL 数据库，并且发送推送功能需要有效的 Apple Push Notification service (APNs) 证书或密钥
+> **构建要求**：本项目需要连接 PostgreSQL 数据库。
 
 ### 步骤
 
@@ -43,7 +40,7 @@
 
 3. 项目配置
 
-   复制环境变量模板并根据实际情况修改配置信息（如数据库连接、APNs 密钥路径等）：
+   复制环境变量模板并根据实际情况修改配置信息：
 
    ```bash
    cp .env.template .env
@@ -51,10 +48,8 @@
 
    你需要确保 `.env` 文件中包含以下关键配置：
    - 数据库连接信息 (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` 等)
-   - JWT 密钥 (`JWT_SECRET`) 与 后台管理 Token (`ADMIN_BEARER_TOKEN`)
-   - APNs 凭据信息 (`APNS_TEAM_IDENTIFIER`, `APNS_KEY_IDENTIFIER`, `APNS_PRIVATE_KEY_PATH` 等)
+   - 后台管理 Token (`ADMIN_BEARER_TOKEN`)
    - Swagger 文档访问密码 (`SWAGGER_PASSWORD`)
-   - 长沙理工大学统一身份认证账号密码 (`CSUST_AUTHSERVER_USERNAME`, `CSUST_AUTHSERVER_PASSWORD`)
 
    Swagger 文档会始终保持开启，访问地址为 `/swagger/index.html`，并使用 Basic Auth 保护：
    - 用户名固定为 `swagger`
