@@ -19,9 +19,9 @@
 2. 在 service 中定义 command、用例与领域错误，并补充 fake repository 单元测试。
 3. 在 HTTP handler 定义 JSON 契约和完整的 Swagger 描述、成功及失败响应，保持 handler 只做绑定、映射和响应。
 4. 在 `main.go` 装配 repository、service、handler；在 `router` 注册路由和认证边界。
-5. 在 `main.go` 的 `postgres.AutoMigrate` 调用中登记实体。版本化 migration 将在下一轮替代此步骤。
+5. 在 `internal/postgres/migrations` 中新增只向前执行的 Goose SQL migration。migration 是数据库结构变更的唯一来源，已发布的文件不得修改；GORM tag 只维护运行时字段映射。
 6. 更新路由集成测试与 Swagger 契约测试，执行 `swag init` 并运行完整测试套件。
 
 ## 基础设施
 
-`config` 只读取环境配置。`internal/postgres` 负责数据库连接与自动迁移。`main.go` 是唯一组合根，不使用全局配置或全局数据库实例。
+`config` 只读取环境配置。`internal/postgres` 负责数据库连接，并在应用启动时按版本顺序执行尚未应用的 Goose migration。迁移失败会阻止应用启动，由人工处理；应用不提供向下迁移入口。`main.go` 是唯一组合根，不使用全局配置或全局数据库实例。

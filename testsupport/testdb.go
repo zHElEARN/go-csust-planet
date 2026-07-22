@@ -1,17 +1,14 @@
 package testsupport
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"github.com/zHElEARN/go-csust-planet/internal/announcement"
-	"github.com/zHElEARN/go-csust-planet/internal/appversion"
-	"github.com/zHElEARN/go-csust-planet/internal/campusmap"
 	internalpostgres "github.com/zHElEARN/go-csust-planet/internal/postgres"
-	"github.com/zHElEARN/go-csust-planet/internal/semestercalendar"
 )
 
 func OpenTestDB(t *testing.T, useTransaction bool) (*gorm.DB, *gorm.DB) {
@@ -40,10 +37,7 @@ func OpenTestDB(t *testing.T, useTransaction bool) (*gorm.DB, *gorm.DB) {
 		_ = sqlDB.Close()
 	})
 
-	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto").Error; err != nil {
-		t.Fatalf("failed to enable pgcrypto extension: %v", err)
-	}
-	if err := internalpostgres.AutoMigrate(db, &announcement.Entity{}, &appversion.Entity{}, &campusmap.Entity{}, &semestercalendar.Entity{}); err != nil {
+	if _, err := internalpostgres.Migrate(context.Background(), db); err != nil {
 		t.Fatalf("failed to migrate test database: %v", err)
 	}
 

@@ -29,7 +29,3 @@ func Open(cfg config.Config) (*gorm.DB, error) {
 		}),
 	})
 }
-
-func AutoMigrate(db *gorm.DB, entities ...any) error {
-	return db.AutoMigrate(entities...)
-}

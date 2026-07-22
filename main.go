@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/zHElEARN/go-csust-planet/config"
@@ -27,10 +28,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("[FATAL] 连接数据库失败: %v", err)
 	}
-	if err := postgres.AutoMigrate(db, &announcement.Entity{}, &appversion.Entity{}, &campusmap.Entity{}, &semestercalendar.Entity{}); err != nil {
-		log.Fatalf("[FATAL] 数据库自动迁移失败: %v", err)
+	migrationVersion, err := postgres.Migrate(context.Background(), db)
+	if err != nil {
+		log.Fatalf("[FATAL] 数据库版本迁移失败: %v", err)
 	}
-	log.Println("[INFO] PostgreSQL 数据库连接成功，自动迁移完成")
+	log.Printf("[INFO] PostgreSQL 数据库连接成功，当前迁移版本: %d", migrationVersion)
 
 	announcementHandler := announcement.NewHandler(announcement.NewService(announcement.NewPostgresRepository(db)))
 	appVersionHandler := appversion.NewHandler(appversion.NewService(appversion.NewPostgresRepository(db)))
