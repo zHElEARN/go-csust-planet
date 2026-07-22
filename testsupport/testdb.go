@@ -7,7 +7,11 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"github.com/zHElEARN/go-csust-planet/config"
+	"github.com/zHElEARN/go-csust-planet/internal/announcement"
+	"github.com/zHElEARN/go-csust-planet/internal/appversion"
+	"github.com/zHElEARN/go-csust-planet/internal/campusmap"
+	internalpostgres "github.com/zHElEARN/go-csust-planet/internal/postgres"
+	"github.com/zHElEARN/go-csust-planet/internal/semestercalendar"
 )
 
 func OpenTestDB(t *testing.T, useTransaction bool) (*gorm.DB, *gorm.DB) {
@@ -39,7 +43,7 @@ func OpenTestDB(t *testing.T, useTransaction bool) (*gorm.DB, *gorm.DB) {
 	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto").Error; err != nil {
 		t.Fatalf("failed to enable pgcrypto extension: %v", err)
 	}
-	if err := config.AutoMigrate(db); err != nil {
+	if err := internalpostgres.AutoMigrate(db, &announcement.Entity{}, &appversion.Entity{}, &campusmap.Entity{}, &semestercalendar.Entity{}); err != nil {
 		t.Fatalf("failed to migrate test database: %v", err)
 	}
 

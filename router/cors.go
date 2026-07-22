@@ -5,25 +5,18 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-
-	"github.com/zHElEARN/go-csust-planet/config"
 )
 
-func corsMiddleware() gin.HandlerFunc {
+func corsMiddleware(origins []string) gin.HandlerFunc {
+	allowed := make(map[string]struct{}, len(origins))
+	for _, origin := range origins {
+		allowed[origin] = struct{}{}
+	}
+
 	return func(c *gin.Context) {
 		if !strings.HasPrefix(c.Request.URL.Path, "/v1") {
 			c.Next()
 			return
-		}
-
-		if config.AppConfig == nil {
-			c.Next()
-			return
-		}
-
-		allowed := make(map[string]struct{}, len(config.AppConfig.CORSAllowedOrigins))
-		for _, origin := range config.AppConfig.CORSAllowedOrigins {
-			allowed[origin] = struct{}{}
 		}
 
 		origin := c.GetHeader("Origin")

@@ -40,20 +40,20 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.AdminAnnouncementResponse"
+                                "$ref": "#/definitions/announcement.adminAnnouncementResponse"
                             }
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -84,7 +84,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminAnnouncementUpsertRequest"
+                            "$ref": "#/definitions/announcement.upsertRequest"
                         }
                     }
                 ],
@@ -92,25 +92,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminAnnouncementResponse"
+                            "$ref": "#/definitions/announcement.adminAnnouncementResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -146,31 +146,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminAnnouncementResponse"
+                            "$ref": "#/definitions/announcement.adminAnnouncementResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -208,7 +208,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminAnnouncementUpsertRequest"
+                            "$ref": "#/definitions/announcement.upsertRequest"
                         }
                     }
                 ],
@@ -216,31 +216,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminAnnouncementResponse"
+                            "$ref": "#/definitions/announcement.adminAnnouncementResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -277,25 +277,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -326,20 +326,20 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.AdminAppVersionResponse"
+                                "$ref": "#/definitions/appversion.adminResponse"
                             }
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -370,7 +370,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminAppVersionUpsertRequest"
+                            "$ref": "#/definitions/appversion.upsertRequest"
                         }
                     }
                 ],
@@ -378,31 +378,31 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminAppVersionResponse"
+                            "$ref": "#/definitions/appversion.adminResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -438,31 +438,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminAppVersionResponse"
+                            "$ref": "#/definitions/appversion.adminResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -500,7 +500,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminAppVersionUpsertRequest"
+                            "$ref": "#/definitions/appversion.upsertRequest"
                         }
                     }
                 ],
@@ -508,37 +508,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminAppVersionResponse"
+                            "$ref": "#/definitions/appversion.adminResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -575,25 +575,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -624,20 +624,20 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.AdminSemesterCalendarResponse"
+                                "$ref": "#/definitions/semestercalendar.adminResponse"
                             }
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -668,7 +668,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminSemesterCalendarUpsertRequest"
+                            "$ref": "#/definitions/semestercalendar.upsertRequest"
                         }
                     }
                 ],
@@ -676,31 +676,31 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminSemesterCalendarResponse"
+                            "$ref": "#/definitions/semestercalendar.adminResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -736,25 +736,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminSemesterCalendarResponse"
+                            "$ref": "#/definitions/semestercalendar.adminResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -792,7 +792,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminSemesterCalendarUpsertRequest"
+                            "$ref": "#/definitions/semestercalendar.upsertRequest"
                         }
                     }
                 ],
@@ -800,37 +800,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.AdminSemesterCalendarResponse"
+                            "$ref": "#/definitions/semestercalendar.adminResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -867,19 +867,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -901,14 +901,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.AnnouncementResponse"
+                                "$ref": "#/definitions/announcement.announcementResponse"
                             }
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -943,20 +943,20 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.AppVersionResponse"
+                                "$ref": "#/definitions/appversion.publicResponse"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -996,19 +996,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.CheckAppVersionResponse"
+                            "$ref": "#/definitions/appversion.checkResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -1028,13 +1028,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.CampusMapResponse"
+                            "$ref": "#/definitions/campusmap.responseBody"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -1056,14 +1056,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.SemesterCalendarListResponse"
+                                "$ref": "#/definitions/semestercalendar.listResponse"
                             }
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -1092,19 +1092,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.SemesterCalendarDetailResponse"
+                            "$ref": "#/definitions/semestercalendar.detailResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -1112,7 +1112,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.AdminAnnouncementResponse": {
+        "announcement.adminAnnouncementResponse": {
             "type": "object",
             "properties": {
                 "content": {
@@ -1135,7 +1135,27 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.AdminAnnouncementUpsertRequest": {
+        "announcement.announcementResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isBanner": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "announcement.upsertRequest": {
             "type": "object",
             "required": [
                 "content",
@@ -1158,7 +1178,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.AdminAppVersionResponse": {
+        "appversion.adminResponse": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -1187,7 +1207,47 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.AdminAppVersionUpsertRequest": {
+        "appversion.checkResponse": {
+            "type": "object",
+            "properties": {
+                "hasUpdate": {
+                    "type": "boolean"
+                },
+                "isForceUpdate": {
+                    "type": "boolean"
+                },
+                "latestVersion": {
+                    "$ref": "#/definitions/appversion.publicResponse"
+                }
+            }
+        },
+        "appversion.publicResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "downloadUrl": {
+                    "type": "string"
+                },
+                "isForceUpdate": {
+                    "type": "boolean"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "releaseNotes": {
+                    "type": "string"
+                },
+                "versionCode": {
+                    "type": "integer"
+                },
+                "versionName": {
+                    "type": "string"
+                }
+            }
+        },
+        "appversion.upsertRequest": {
             "type": "object",
             "required": [
                 "downloadUrl",
@@ -1222,271 +1282,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.AdminSemesterCalendarResponse": {
-            "type": "object",
-            "properties": {
-                "calendarEnd": {
-                    "type": "string"
-                },
-                "calendarStart": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "customWeekRanges": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.CustomWeekRange"
-                    }
-                },
-                "notes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.CalendarNote"
-                    }
-                },
-                "semesterCode": {
-                    "type": "string"
-                },
-                "semesterEnd": {
-                    "type": "string"
-                },
-                "semesterStart": {
-                    "type": "string"
-                },
-                "subtitle": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.AdminSemesterCalendarUpsertRequest": {
-            "type": "object",
-            "required": [
-                "calendarEnd",
-                "calendarStart",
-                "semesterCode",
-                "semesterEnd",
-                "semesterStart",
-                "subtitle",
-                "title"
-            ],
-            "properties": {
-                "calendarEnd": {
-                    "type": "string"
-                },
-                "calendarStart": {
-                    "type": "string"
-                },
-                "customWeekRanges": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.CustomWeekRange"
-                    }
-                },
-                "notes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.CalendarNote"
-                    }
-                },
-                "semesterCode": {
-                    "type": "string"
-                },
-                "semesterEnd": {
-                    "type": "string"
-                },
-                "semesterStart": {
-                    "type": "string"
-                },
-                "subtitle": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.AnnouncementResponse": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "isBanner": {
-                    "type": "boolean"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.AppVersionResponse": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "downloadUrl": {
-                    "type": "string"
-                },
-                "isForceUpdate": {
-                    "type": "boolean"
-                },
-                "platform": {
-                    "type": "string"
-                },
-                "releaseNotes": {
-                    "type": "string"
-                },
-                "versionCode": {
-                    "type": "integer"
-                },
-                "versionName": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.CampusMapFeatureResponse": {
-            "type": "object",
-            "properties": {
-                "geometry": {
-                    "$ref": "#/definitions/model.FeatureGeometry"
-                },
-                "properties": {
-                    "$ref": "#/definitions/model.FeatureProperties"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.CampusMapResponse": {
-            "type": "object",
-            "properties": {
-                "features": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.CampusMapFeatureResponse"
-                    }
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.CheckAppVersionResponse": {
-            "type": "object",
-            "properties": {
-                "hasUpdate": {
-                    "type": "boolean"
-                },
-                "isForceUpdate": {
-                    "type": "boolean"
-                },
-                "latestVersion": {
-                    "$ref": "#/definitions/dto.AppVersionResponse"
-                }
-            }
-        },
-        "dto.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.SemesterCalendarDetailResponse": {
-            "type": "object",
-            "properties": {
-                "calendarEnd": {
-                    "type": "string"
-                },
-                "calendarStart": {
-                    "type": "string"
-                },
-                "customWeekRanges": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.CustomWeekRange"
-                    }
-                },
-                "notes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.CalendarNote"
-                    }
-                },
-                "semesterCode": {
-                    "type": "string"
-                },
-                "semesterEnd": {
-                    "type": "string"
-                },
-                "semesterStart": {
-                    "type": "string"
-                },
-                "subtitle": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.SemesterCalendarListResponse": {
-            "type": "object",
-            "properties": {
-                "semesterCode": {
-                    "type": "string"
-                },
-                "subtitle": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.CalendarNote": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "needNumber": {
-                    "type": "boolean"
-                },
-                "row": {
-                    "type": "integer"
-                }
-            }
-        },
-        "model.CustomWeekRange": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "endRow": {
-                    "type": "integer"
-                },
-                "startRow": {
-                    "type": "integer"
-                }
-            }
-        },
-        "model.FeatureGeometry": {
+        "campusmap.FeatureGeometry": {
             "type": "object",
             "properties": {
                 "coordinates": {
@@ -1507,7 +1303,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.FeatureProperties": {
+        "campusmap.FeatureProperties": {
             "type": "object",
             "properties": {
                 "campus": {
@@ -1517,6 +1313,210 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "campusmap.featureResponse": {
+            "type": "object",
+            "properties": {
+                "geometry": {
+                    "$ref": "#/definitions/campusmap.FeatureGeometry"
+                },
+                "properties": {
+                    "$ref": "#/definitions/campusmap.FeatureProperties"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "campusmap.responseBody": {
+            "type": "object",
+            "properties": {
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/campusmap.featureResponse"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "semestercalendar.CalendarNote": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "needNumber": {
+                    "type": "boolean"
+                },
+                "row": {
+                    "type": "integer"
+                }
+            }
+        },
+        "semestercalendar.CustomWeekRange": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "endRow": {
+                    "type": "integer"
+                },
+                "startRow": {
+                    "type": "integer"
+                }
+            }
+        },
+        "semestercalendar.adminResponse": {
+            "type": "object",
+            "properties": {
+                "calendarEnd": {
+                    "type": "string"
+                },
+                "calendarStart": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "customWeekRanges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/semestercalendar.CustomWeekRange"
+                    }
+                },
+                "notes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/semestercalendar.CalendarNote"
+                    }
+                },
+                "semesterCode": {
+                    "type": "string"
+                },
+                "semesterEnd": {
+                    "type": "string"
+                },
+                "semesterStart": {
+                    "type": "string"
+                },
+                "subtitle": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "semestercalendar.detailResponse": {
+            "type": "object",
+            "properties": {
+                "calendarEnd": {
+                    "type": "string"
+                },
+                "calendarStart": {
+                    "type": "string"
+                },
+                "customWeekRanges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/semestercalendar.CustomWeekRange"
+                    }
+                },
+                "notes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/semestercalendar.CalendarNote"
+                    }
+                },
+                "semesterCode": {
+                    "type": "string"
+                },
+                "semesterEnd": {
+                    "type": "string"
+                },
+                "semesterStart": {
+                    "type": "string"
+                },
+                "subtitle": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "semestercalendar.listResponse": {
+            "type": "object",
+            "properties": {
+                "semesterCode": {
+                    "type": "string"
+                },
+                "subtitle": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "semestercalendar.upsertRequest": {
+            "type": "object",
+            "required": [
+                "calendarEnd",
+                "calendarStart",
+                "semesterCode",
+                "semesterEnd",
+                "semesterStart",
+                "subtitle",
+                "title"
+            ],
+            "properties": {
+                "calendarEnd": {
+                    "type": "string"
+                },
+                "calendarStart": {
+                    "type": "string"
+                },
+                "customWeekRanges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/semestercalendar.CustomWeekRange"
+                    }
+                },
+                "notes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/semestercalendar.CalendarNote"
+                    }
+                },
+                "semesterCode": {
+                    "type": "string"
+                },
+                "semesterEnd": {
+                    "type": "string"
+                },
+                "semesterStart": {
+                    "type": "string"
+                },
+                "subtitle": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 }
             }

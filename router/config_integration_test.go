@@ -7,9 +7,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/zHElEARN/go-csust-planet/config"
-	"github.com/zHElEARN/go-csust-planet/dto"
-	"github.com/zHElEARN/go-csust-planet/model"
+	"github.com/zHElEARN/go-csust-planet/internal/announcement"
+	"github.com/zHElEARN/go-csust-planet/internal/appversion"
+	"github.com/zHElEARN/go-csust-planet/internal/campusmap"
+	"github.com/zHElEARN/go-csust-planet/internal/semestercalendar"
 )
 
 func TestConfigAnnouncementsReturnsEmptyList(t *testing.T) {
@@ -18,7 +19,7 @@ func TestConfigAnnouncementsReturnsEmptyList(t *testing.T) {
 	resp := performRequest(t, r, http.MethodGet, "/v1/config/announcements", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var announcements []dto.AnnouncementResponse
+	var announcements []AnnouncementResponse
 	decodeJSONResponse(t, resp, &announcements)
 	if len(announcements) != 0 {
 		t.Fatalf("expected empty announcements list, got %d items", len(announcements))
@@ -28,21 +29,21 @@ func TestConfigAnnouncementsReturnsEmptyList(t *testing.T) {
 func TestConfigAnnouncementsFiltersAndOrdersActiveAnnouncements(t *testing.T) {
 	r := newAdminTestRouter(t)
 
-	older := createTestAnnouncement(t, model.Announcement{
+	older := createTestAnnouncement(t, announcement.Entity{
 		Title:     "较早公告",
 		Content:   "较早内容",
 		IsActive:  true,
 		IsBanner:  false,
 		CreatedAt: time.Date(2026, time.January, 2, 10, 0, 0, 0, time.UTC),
 	})
-	createTestAnnouncement(t, model.Announcement{
+	createTestAnnouncement(t, announcement.Entity{
 		Title:     "隐藏公告",
 		Content:   "不应返回",
 		IsActive:  false,
 		IsBanner:  true,
 		CreatedAt: time.Date(2026, time.January, 3, 10, 0, 0, 0, time.UTC),
 	})
-	newer := createTestAnnouncement(t, model.Announcement{
+	newer := createTestAnnouncement(t, announcement.Entity{
 		Title:     "最新公告",
 		Content:   "最新内容",
 		IsActive:  true,
@@ -53,7 +54,7 @@ func TestConfigAnnouncementsFiltersAndOrdersActiveAnnouncements(t *testing.T) {
 	resp := performRequest(t, r, http.MethodGet, "/v1/config/announcements", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var announcements []dto.AnnouncementResponse
+	var announcements []AnnouncementResponse
 	decodeJSONResponse(t, resp, &announcements)
 	if len(announcements) != 2 {
 		t.Fatalf("expected 2 active announcements, got %d", len(announcements))
@@ -81,7 +82,7 @@ func TestConfigCampusMapReturnsFeatureCollection(t *testing.T) {
 	resp := performRequest(t, r, http.MethodGet, "/v1/config/campus-map", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var empty dto.CampusMapResponse
+	var empty CampusMapResponse
 	decodeJSONResponse(t, resp, &empty)
 	if empty.Type != "FeatureCollection" {
 		t.Fatalf("expected FeatureCollection, got %q", empty.Type)
@@ -90,28 +91,28 @@ func TestConfigCampusMapReturnsFeatureCollection(t *testing.T) {
 		t.Fatalf("expected empty campus map features, got %d", len(empty.Features))
 	}
 
-	first := createTestCampusMapFeature(t, model.CampusMapFeature{
+	first := createTestCampusMapFeature(t, campusmap.Entity{
 		Type: "Feature",
-		Properties: model.FeatureProperties{
+		Properties: campusmap.FeatureProperties{
 			Name:     "图书馆",
 			Campus:   "云塘",
 			Category: "building",
 		},
-		Geometry: model.FeatureGeometry{
+		Geometry: campusmap.FeatureGeometry{
 			Type: "Polygon",
 			Coordinates: [][][]float64{
 				{{112.1, 28.1}, {112.2, 28.1}, {112.2, 28.2}, {112.1, 28.1}},
 			},
 		},
 	})
-	createTestCampusMapFeature(t, model.CampusMapFeature{
+	createTestCampusMapFeature(t, campusmap.Entity{
 		Type: "Feature",
-		Properties: model.FeatureProperties{
+		Properties: campusmap.FeatureProperties{
 			Name:     "体育馆",
 			Campus:   "金盆岭",
 			Category: "venue",
 		},
-		Geometry: model.FeatureGeometry{
+		Geometry: campusmap.FeatureGeometry{
 			Type: "Polygon",
 			Coordinates: [][][]float64{
 				{{113.1, 27.1}, {113.2, 27.1}, {113.2, 27.2}, {113.1, 27.1}},
@@ -122,7 +123,7 @@ func TestConfigCampusMapReturnsFeatureCollection(t *testing.T) {
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/campus-map", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var campusMap dto.CampusMapResponse
+	var campusMap CampusMapResponse
 	decodeJSONResponse(t, resp, &campusMap)
 	if campusMap.Type != "FeatureCollection" {
 		t.Fatalf("expected FeatureCollection, got %q", campusMap.Type)
@@ -131,7 +132,7 @@ func TestConfigCampusMapReturnsFeatureCollection(t *testing.T) {
 		t.Fatalf("expected 2 campus map features, got %d", len(campusMap.Features))
 	}
 
-	featuresByName := make(map[string]dto.CampusMapFeatureResponse, len(campusMap.Features))
+	featuresByName := make(map[string]CampusMapFeatureResponse, len(campusMap.Features))
 	for _, feature := range campusMap.Features {
 		featuresByName[feature.Properties.Name] = feature
 	}
@@ -172,13 +173,13 @@ func TestConfigAppVersionsValidatesPlatformAndFiltersByPlatform(t *testing.T) {
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/app-versions?platform=ios", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var empty []dto.AppVersionResponse
+	var empty []AppVersionResponse
 	decodeJSONResponse(t, resp, &empty)
 	if len(empty) != 0 {
 		t.Fatalf("expected empty ios app version list, got %d", len(empty))
 	}
 
-	createTestAppVersion(t, model.AppVersion{
+	createTestAppVersion(t, appversion.Entity{
 		Platform:      "ios",
 		VersionCode:   100,
 		VersionName:   "1.0.0",
@@ -187,7 +188,7 @@ func TestConfigAppVersionsValidatesPlatformAndFiltersByPlatform(t *testing.T) {
 		DownloadURL:   "https://example.com/ios-100",
 		CreatedAt:     time.Date(2026, time.January, 1, 10, 0, 0, 0, time.UTC),
 	})
-	latestIOS := createTestAppVersion(t, model.AppVersion{
+	latestIOS := createTestAppVersion(t, appversion.Entity{
 		Platform:      "ios",
 		VersionCode:   200,
 		VersionName:   "2.0.0",
@@ -196,7 +197,7 @@ func TestConfigAppVersionsValidatesPlatformAndFiltersByPlatform(t *testing.T) {
 		DownloadURL:   "https://example.com/ios-200",
 		CreatedAt:     time.Date(2026, time.January, 2, 10, 0, 0, 0, time.UTC),
 	})
-	createTestAppVersion(t, model.AppVersion{
+	createTestAppVersion(t, appversion.Entity{
 		Platform:      "android",
 		VersionCode:   300,
 		VersionName:   "3.0.0",
@@ -209,7 +210,7 @@ func TestConfigAppVersionsValidatesPlatformAndFiltersByPlatform(t *testing.T) {
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/app-versions?platform=ios", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var versions []dto.AppVersionResponse
+	var versions []AppVersionResponse
 	decodeJSONResponse(t, resp, &versions)
 	if len(versions) != 2 {
 		t.Fatalf("expected 2 ios app versions, got %d", len(versions))
@@ -242,13 +243,13 @@ func TestConfigAppVersionCheckValidatesAndReturnsLatestVersionState(t *testing.T
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/app-versions/check?platform=ios&currentVersionCode=100", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var empty dto.CheckAppVersionResponse
+	var empty CheckAppVersionResponse
 	decodeJSONResponse(t, resp, &empty)
 	if empty.HasUpdate || empty.IsForceUpdate || empty.LatestVersion != nil {
 		t.Fatalf("unexpected empty check response: %+v", empty)
 	}
 
-	createTestAppVersion(t, model.AppVersion{
+	createTestAppVersion(t, appversion.Entity{
 		Platform:      "ios",
 		VersionCode:   100,
 		VersionName:   "1.0.0",
@@ -256,7 +257,7 @@ func TestConfigAppVersionCheckValidatesAndReturnsLatestVersionState(t *testing.T
 		ReleaseNotes:  "first release",
 		DownloadURL:   "https://example.com/ios-100",
 	})
-	latest := createTestAppVersion(t, model.AppVersion{
+	latest := createTestAppVersion(t, appversion.Entity{
 		Platform:      "ios",
 		VersionCode:   200,
 		VersionName:   "2.0.0",
@@ -268,7 +269,7 @@ func TestConfigAppVersionCheckValidatesAndReturnsLatestVersionState(t *testing.T
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/app-versions/check?platform=ios&currentVersionCode=200", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var upToDate dto.CheckAppVersionResponse
+	var upToDate CheckAppVersionResponse
 	decodeJSONResponse(t, resp, &upToDate)
 	if upToDate.HasUpdate || upToDate.IsForceUpdate || upToDate.LatestVersion == nil {
 		t.Fatalf("unexpected up-to-date response: %+v", upToDate)
@@ -280,7 +281,7 @@ func TestConfigAppVersionCheckValidatesAndReturnsLatestVersionState(t *testing.T
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/app-versions/check?platform=ios&currentVersionCode=150", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var nonForce dto.CheckAppVersionResponse
+	var nonForce CheckAppVersionResponse
 	decodeJSONResponse(t, resp, &nonForce)
 	if !nonForce.HasUpdate || nonForce.IsForceUpdate || nonForce.LatestVersion == nil {
 		t.Fatalf("unexpected non-force update response: %+v", nonForce)
@@ -289,7 +290,7 @@ func TestConfigAppVersionCheckValidatesAndReturnsLatestVersionState(t *testing.T
 		t.Fatalf("expected latest version code %d, got %+v", latest.VersionCode, nonForce.LatestVersion)
 	}
 
-	forceLatest := createTestAppVersion(t, model.AppVersion{
+	forceLatest := createTestAppVersion(t, appversion.Entity{
 		Platform:      "ios",
 		VersionCode:   300,
 		VersionName:   "3.0.0",
@@ -301,7 +302,7 @@ func TestConfigAppVersionCheckValidatesAndReturnsLatestVersionState(t *testing.T
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/app-versions/check?platform=ios&currentVersionCode=150", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var force dto.CheckAppVersionResponse
+	var force CheckAppVersionResponse
 	decodeJSONResponse(t, resp, &force)
 	if !force.HasUpdate || !force.IsForceUpdate || force.LatestVersion == nil {
 		t.Fatalf("unexpected force update response: %+v", force)
@@ -317,13 +318,13 @@ func TestConfigSemesterCalendarsListAndDetail(t *testing.T) {
 	resp := performRequest(t, r, http.MethodGet, "/v1/config/semester-calendars", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var empty []dto.SemesterCalendarListResponse
+	var empty []SemesterCalendarListResponse
 	decodeJSONResponse(t, resp, &empty)
 	if len(empty) != 0 {
 		t.Fatalf("expected empty semester calendar list, got %d", len(empty))
 	}
 
-	older := createTestSemesterCalendar(t, model.SemesterCalendar{
+	older := createTestSemesterCalendar(t, semestercalendar.Entity{
 		SemesterCode:  "2024-2025-1",
 		Title:         "2024-2025学年度校历",
 		Subtitle:      "第一学期",
@@ -332,7 +333,7 @@ func TestConfigSemesterCalendarsListAndDetail(t *testing.T) {
 		SemesterStart: time.Date(2024, time.September, 2, 0, 0, 0, 0, time.UTC),
 		SemesterEnd:   time.Date(2025, time.January, 12, 0, 0, 0, 0, time.UTC),
 	})
-	newer := createTestSemesterCalendar(t, model.SemesterCalendar{
+	newer := createTestSemesterCalendar(t, semestercalendar.Entity{
 		SemesterCode:  "2024-2025-2",
 		Title:         "2024-2025学年度校历",
 		Subtitle:      "第二学期",
@@ -340,11 +341,11 @@ func TestConfigSemesterCalendarsListAndDetail(t *testing.T) {
 		CalendarEnd:   time.Date(2025, time.July, 10, 0, 0, 0, 0, time.UTC),
 		SemesterStart: time.Date(2025, time.February, 17, 0, 0, 0, 0, time.UTC),
 		SemesterEnd:   time.Date(2025, time.June, 29, 0, 0, 0, 0, time.UTC),
-		Notes: []model.CalendarNote{
+		Notes: []semestercalendar.CalendarNote{
 			{Row: 1, Content: "开学准备"},
 			{Row: 2, Content: "考试周", NeedNumber: true},
 		},
-		CustomWeekRanges: []model.CustomWeekRange{
+		CustomWeekRanges: []semestercalendar.CustomWeekRange{
 			{StartRow: 3, EndRow: 4, Content: "劳动节假期"},
 		},
 	})
@@ -352,7 +353,7 @@ func TestConfigSemesterCalendarsListAndDetail(t *testing.T) {
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/semester-calendars", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var calendars []dto.SemesterCalendarListResponse
+	var calendars []SemesterCalendarListResponse
 	decodeJSONResponse(t, resp, &calendars)
 	if len(calendars) != 2 {
 		t.Fatalf("expected 2 semester calendars, got %d", len(calendars))
@@ -367,7 +368,7 @@ func TestConfigSemesterCalendarsListAndDetail(t *testing.T) {
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/semester-calendars/"+newer.SemesterCode, nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var detail dto.SemesterCalendarDetailResponse
+	var detail SemesterCalendarDetailResponse
 	decodeJSONResponse(t, resp, &detail)
 	if detail.SemesterCode != newer.SemesterCode ||
 		detail.Title != newer.Title ||
@@ -391,62 +392,62 @@ func TestConfigSemesterCalendarsListAndDetail(t *testing.T) {
 	assertStatus(t, resp, http.StatusNotFound)
 }
 
-func createTestAnnouncement(t *testing.T, announcement model.Announcement) model.Announcement {
+func createTestAnnouncement(t *testing.T, entity announcement.Entity) announcement.Entity {
 	t.Helper()
 
-	if announcement.ID == uuid.Nil {
-		announcement.ID = uuid.New()
+	if entity.ID == uuid.Nil {
+		entity.ID = uuid.New()
 	}
 
 	values := map[string]any{
-		"id":        announcement.ID,
-		"title":     announcement.Title,
-		"content":   announcement.Content,
-		"is_active": announcement.IsActive,
-		"is_banner": announcement.IsBanner,
+		"id":        entity.ID,
+		"title":     entity.Title,
+		"content":   entity.Content,
+		"is_active": entity.IsActive,
+		"is_banner": entity.IsBanner,
 	}
-	if !announcement.CreatedAt.IsZero() {
-		values["created_at"] = announcement.CreatedAt
+	if !entity.CreatedAt.IsZero() {
+		values["created_at"] = entity.CreatedAt
 	}
 
-	if err := config.DB.Model(&model.Announcement{}).Create(values).Error; err != nil {
+	if err := activeTestDB.Model(&announcement.Entity{}).Create(values).Error; err != nil {
 		t.Fatalf("failed to create test announcement: %v", err)
 	}
-	if err := config.DB.First(&announcement, "id = ?", announcement.ID).Error; err != nil {
+	if err := activeTestDB.First(&entity, "id = ?", entity.ID).Error; err != nil {
 		t.Fatalf("failed to reload test announcement: %v", err)
 	}
 
-	return announcement
+	return entity
 }
 
-func createTestCampusMapFeature(t *testing.T, feature model.CampusMapFeature) model.CampusMapFeature {
+func createTestCampusMapFeature(t *testing.T, feature campusmap.Entity) campusmap.Entity {
 	t.Helper()
 
-	if err := config.DB.Create(&feature).Error; err != nil {
+	if err := activeTestDB.Create(&feature).Error; err != nil {
 		t.Fatalf("failed to create test campus map feature: %v", err)
 	}
 
 	return feature
 }
 
-func createTestAppVersion(t *testing.T, version model.AppVersion) model.AppVersion {
+func createTestAppVersion(t *testing.T, version appversion.Entity) appversion.Entity {
 	t.Helper()
 
-	if err := config.DB.Create(&version).Error; err != nil {
+	if err := activeTestDB.Create(&version).Error; err != nil {
 		t.Fatalf("failed to create test app version: %v", err)
 	}
 
 	return version
 }
 
-func createTestSemesterCalendar(t *testing.T, calendar model.SemesterCalendar) model.SemesterCalendar {
+func createTestSemesterCalendar(t *testing.T, calendar semestercalendar.Entity) semestercalendar.Entity {
 	t.Helper()
 
 	if calendar.ID == uuid.Nil {
 		calendar.ID = uuid.New()
 	}
 
-	if err := config.DB.Create(&calendar).Error; err != nil {
+	if err := activeTestDB.Create(&calendar).Error; err != nil {
 		t.Fatalf("failed to create test semester calendar: %v", err)
 	}
 

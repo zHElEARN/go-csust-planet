@@ -7,15 +7,25 @@ import (
 
 	_ "github.com/zHElEARN/go-csust-planet/docs"
 
-	"github.com/zHElEARN/go-csust-planet/controller"
+	"github.com/zHElEARN/go-csust-planet/internal/announcement"
+	"github.com/zHElEARN/go-csust-planet/internal/appversion"
+	"github.com/zHElEARN/go-csust-planet/internal/campusmap"
+	"github.com/zHElEARN/go-csust-planet/internal/health"
+	"github.com/zHElEARN/go-csust-planet/internal/semestercalendar"
 	"github.com/zHElEARN/go-csust-planet/middleware"
+	"github.com/zHElEARN/go-csust-planet/utils/response"
 )
 
 type Dependencies struct {
-	Handler          *controller.Handler
-	AppMode          string
-	SwaggerPassword  string
-	AdminBearerToken string
+	HealthHandler           *health.Handler
+	AnnouncementHandler     *announcement.Handler
+	AppVersionHandler       *appversion.Handler
+	CampusMapHandler        *campusmap.Handler
+	SemesterCalendarHandler *semestercalendar.Handler
+	AppMode                 string
+	SwaggerPassword         string
+	AdminBearerToken        string
+	CORSAllowedOrigins      []string
 }
 
 func SetupRouter(deps Dependencies) *gin.Engine {
@@ -30,9 +40,9 @@ func SetupRouter(deps Dependencies) *gin.Engine {
 		SkipPaths: []string{"/healthz"},
 	}))
 	r.Use(gin.Recovery())
-	r.Use(corsMiddleware())
+	r.Use(corsMiddleware(deps.CORSAllowedOrigins))
 
-	r.GET("/healthz", deps.Handler.HealthCheck)
+	r.GET("/healthz", deps.HealthHandler.Check)
 
 	v1 := r.Group("/v1")
 
@@ -43,39 +53,39 @@ func SetupRouter(deps Dependencies) *gin.Engine {
 
 	configGroup := v1.Group("/config")
 	{
-		configGroup.GET("/announcements", deps.Handler.GetAnnouncements)
-		configGroup.GET("/campus-map", deps.Handler.GetCampusMap)
-		configGroup.GET("/app-versions", deps.Handler.GetAppVersions)
-		configGroup.GET("/app-versions/check", deps.Handler.CheckAppVersion)
-		configGroup.GET("/semester-calendars", deps.Handler.GetSemesterCalendars)
-		configGroup.GET("/semester-calendars/:semester_code", deps.Handler.GetSemesterCalendarDetail)
+		configGroup.GET("/announcements", deps.AnnouncementHandler.GetAnnouncements)
+		configGroup.GET("/campus-map", deps.CampusMapHandler.GetCampusMap)
+		configGroup.GET("/app-versions", deps.AppVersionHandler.GetAppVersions)
+		configGroup.GET("/app-versions/check", deps.AppVersionHandler.CheckAppVersion)
+		configGroup.GET("/semester-calendars", deps.SemesterCalendarHandler.GetSemesterCalendars)
+		configGroup.GET("/semester-calendars/:semester_code", deps.SemesterCalendarHandler.GetSemesterCalendarDetail)
 	}
 
 	adminGroup := v1.Group("/admin")
 	adminGroup.Use(middleware.AdminAuthMiddleware(deps.AdminBearerToken))
 	{
-		adminGroup.GET("/announcements", deps.Handler.GetAdminAnnouncements)
-		adminGroup.GET("/announcements/:id", deps.Handler.GetAdminAnnouncement)
-		adminGroup.POST("/announcements", deps.Handler.CreateAnnouncement)
-		adminGroup.PUT("/announcements/:id", deps.Handler.UpdateAnnouncement)
-		adminGroup.DELETE("/announcements/:id", deps.Handler.DeleteAnnouncement)
+		adminGroup.GET("/announcements", deps.AnnouncementHandler.GetAdminAnnouncements)
+		adminGroup.GET("/announcements/:id", deps.AnnouncementHandler.GetAdminAnnouncement)
+		adminGroup.POST("/announcements", deps.AnnouncementHandler.CreateAnnouncement)
+		adminGroup.PUT("/announcements/:id", deps.AnnouncementHandler.UpdateAnnouncement)
+		adminGroup.DELETE("/announcements/:id", deps.AnnouncementHandler.DeleteAnnouncement)
 
-		adminGroup.GET("/app-versions", deps.Handler.GetAdminAppVersions)
-		adminGroup.GET("/app-versions/:id", deps.Handler.GetAdminAppVersion)
-		adminGroup.POST("/app-versions", deps.Handler.CreateAppVersion)
-		adminGroup.PUT("/app-versions/:id", deps.Handler.UpdateAppVersion)
-		adminGroup.DELETE("/app-versions/:id", deps.Handler.DeleteAppVersion)
+		adminGroup.GET("/app-versions", deps.AppVersionHandler.GetAdminAppVersions)
+		adminGroup.GET("/app-versions/:id", deps.AppVersionHandler.GetAdminAppVersion)
+		adminGroup.POST("/app-versions", deps.AppVersionHandler.CreateAppVersion)
+		adminGroup.PUT("/app-versions/:id", deps.AppVersionHandler.UpdateAppVersion)
+		adminGroup.DELETE("/app-versions/:id", deps.AppVersionHandler.DeleteAppVersion)
 
-		adminGroup.GET("/semester-calendars", deps.Handler.GetAdminSemesterCalendars)
-		adminGroup.GET("/semester-calendars/:semester_code", deps.Handler.GetAdminSemesterCalendar)
-		adminGroup.POST("/semester-calendars", deps.Handler.CreateSemesterCalendar)
-		adminGroup.PUT("/semester-calendars/:semester_code", deps.Handler.UpdateSemesterCalendar)
-		adminGroup.DELETE("/semester-calendars/:semester_code", deps.Handler.DeleteSemesterCalendar)
+		adminGroup.GET("/semester-calendars", deps.SemesterCalendarHandler.GetAdminSemesterCalendars)
+		adminGroup.GET("/semester-calendars/:semester_code", deps.SemesterCalendarHandler.GetAdminSemesterCalendar)
+		adminGroup.POST("/semester-calendars", deps.SemesterCalendarHandler.CreateSemesterCalendar)
+		adminGroup.PUT("/semester-calendars/:semester_code", deps.SemesterCalendarHandler.UpdateSemesterCalendar)
+		adminGroup.DELETE("/semester-calendars/:semester_code", deps.SemesterCalendarHandler.DeleteSemesterCalendar)
 	}
 
 	mountAdminFrontend(r, deps.AppMode)
 
-	r.NoRoute(controller.HandleNotFound)
+	r.NoRoute(func(c *gin.Context) { response.ResponseError(c, 404, "找不到路由") })
 
 	return r
 }

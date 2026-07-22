@@ -3,8 +3,6 @@ package router
 import (
 	"net/http"
 	"testing"
-
-	"github.com/zHElEARN/go-csust-planet/dto"
 )
 
 func TestAdminAuthMiddleware(t *testing.T) {
@@ -22,7 +20,7 @@ func TestAdminAuthMiddleware(t *testing.T) {
 	resp = performRequest(t, r, http.MethodGet, "/v1/admin/announcements", nil, testAdminToken)
 	assertStatus(t, resp, http.StatusOK)
 
-	var list []dto.AdminAnnouncementResponse
+	var list []AdminAnnouncementResponse
 	decodeJSONResponse(t, resp, &list)
 	if len(list) != 0 {
 		t.Fatalf("expected empty announcement list, got %d items", len(list))

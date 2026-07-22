@@ -6,8 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zHElEARN/go-csust-planet/dto"
-	"github.com/zHElEARN/go-csust-planet/model"
+	"github.com/zHElEARN/go-csust-planet/internal/appversion"
 )
 
 func TestAdminAppVersionCRUD(t *testing.T) {
@@ -41,7 +40,7 @@ func TestAdminAppVersionCRUD(t *testing.T) {
 	}, testAdminToken)
 	assertStatus(t, resp, http.StatusCreated)
 
-	var iosV100 dto.AdminAppVersionResponse
+	var iosV100 AdminAppVersionResponse
 	decodeJSONResponse(t, resp, &iosV100)
 
 	resp = performRequest(t, r, http.MethodPost, "/v1/admin/app-versions", map[string]any{
@@ -54,7 +53,7 @@ func TestAdminAppVersionCRUD(t *testing.T) {
 	}, testAdminToken)
 	assertStatus(t, resp, http.StatusCreated)
 
-	var iosV200 dto.AdminAppVersionResponse
+	var iosV200 AdminAppVersionResponse
 	decodeJSONResponse(t, resp, &iosV200)
 
 	resp = performRequest(t, r, http.MethodPost, "/v1/admin/app-versions", map[string]any{
@@ -70,7 +69,7 @@ func TestAdminAppVersionCRUD(t *testing.T) {
 	resp = performRequest(t, r, http.MethodGet, "/v1/admin/app-versions", nil, testAdminToken)
 	assertStatus(t, resp, http.StatusOK)
 
-	var adminList []dto.AdminAppVersionResponse
+	var adminList []AdminAppVersionResponse
 	decodeJSONResponse(t, resp, &adminList)
 	if len(adminList) != 3 {
 		t.Fatalf("expected 3 app versions in admin list, got %d", len(adminList))
@@ -82,7 +81,7 @@ func TestAdminAppVersionCRUD(t *testing.T) {
 	resp = performRequest(t, r, http.MethodGet, "/v1/admin/app-versions/"+iosV100.ID, nil, testAdminToken)
 	assertStatus(t, resp, http.StatusOK)
 
-	var detail dto.AdminAppVersionResponse
+	var detail AdminAppVersionResponse
 	decodeJSONResponse(t, resp, &detail)
 	if detail.VersionCode != 100 {
 		t.Fatalf("expected version code 100, got %d", detail.VersionCode)
@@ -98,7 +97,7 @@ func TestAdminAppVersionCRUD(t *testing.T) {
 	}, testAdminToken)
 	assertStatus(t, resp, http.StatusOK)
 
-	var updated dto.AdminAppVersionResponse
+	var updated AdminAppVersionResponse
 	decodeJSONResponse(t, resp, &updated)
 	if updated.VersionCode != 150 || updated.VersionName != "1.5.0" {
 		t.Fatalf("unexpected updated version: %+v", updated)
@@ -127,7 +126,7 @@ func TestAdminAppVersionCRUD(t *testing.T) {
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/app-versions?platform=ios", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var publicVersions []dto.AppVersionResponse
+	var publicVersions []AppVersionResponse
 	decodeJSONResponse(t, resp, &publicVersions)
 	if len(publicVersions) != 2 || publicVersions[0].VersionCode != 200 || publicVersions[1].VersionCode != 150 {
 		t.Fatalf("unexpected public app version list: %+v", publicVersions)
@@ -136,7 +135,7 @@ func TestAdminAppVersionCRUD(t *testing.T) {
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/app-versions/check?platform=ios&currentVersionCode=120", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var checkResp dto.CheckAppVersionResponse
+	var checkResp CheckAppVersionResponse
 	decodeJSONResponse(t, resp, &checkResp)
 	if !checkResp.HasUpdate || !checkResp.IsForceUpdate || checkResp.LatestVersion == nil || checkResp.LatestVersion.VersionCode != 200 {
 		t.Fatalf("unexpected version check response: %+v", checkResp)
@@ -154,7 +153,7 @@ func TestAdminAppVersionCreateIsConcurrencySafe(t *testing.T) {
 
 	versionCode := int(time.Now().UnixNano() % 1_000_000_000)
 	t.Cleanup(func() {
-		if err := db.Where("platform = ? AND version_code = ?", "ios", versionCode).Delete(&model.AppVersion{}).Error; err != nil {
+		if err := db.Where("platform = ? AND version_code = ?", "ios", versionCode).Delete(&appversion.Entity{}).Error; err != nil {
 			t.Fatalf("failed to cleanup concurrent app version test data: %v", err)
 		}
 	})
@@ -208,7 +207,7 @@ func TestAdminAppVersionCreateIsConcurrencySafe(t *testing.T) {
 	}
 
 	var count int64
-	if err := db.Model(&model.AppVersion{}).Where("platform = ? AND version_code = ?", "ios", versionCode).Count(&count).Error; err != nil {
+	if err := db.Model(&appversion.Entity{}).Where("platform = ? AND version_code = ?", "ios", versionCode).Count(&count).Error; err != nil {
 		t.Fatalf("failed to count concurrent app versions: %v", err)
 	}
 	if count != 1 {

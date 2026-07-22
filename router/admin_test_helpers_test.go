@@ -9,13 +9,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"github.com/zHElEARN/go-csust-planet/config"
-	"github.com/zHElEARN/go-csust-planet/controller"
-	"github.com/zHElEARN/go-csust-planet/service"
+	"github.com/zHElEARN/go-csust-planet/internal/announcement"
+	"github.com/zHElEARN/go-csust-planet/internal/appversion"
+	"github.com/zHElEARN/go-csust-planet/internal/campusmap"
+	"github.com/zHElEARN/go-csust-planet/internal/health"
+	"github.com/zHElEARN/go-csust-planet/internal/semestercalendar"
 	"github.com/zHElEARN/go-csust-planet/testsupport"
 )
 
 const testAdminToken = "admin-test-token"
+
+var activeTestDB *gorm.DB
 
 func newAdminTestRouter(t *testing.T) *gin.Engine {
 	t.Helper()
@@ -35,33 +39,20 @@ func newAdminTestRouterWithCleanup(t *testing.T, useTransaction bool) (*gin.Engi
 
 	testDB, db := testsupport.OpenTestDB(t, useTransaction)
 	resetRouterTestTables(t, testDB)
-
-	prevConfig := config.AppConfig
-	prevDB := config.DB
-
-	config.AppConfig = &config.Config{
-		AppMode:          "test",
-		SwaggerPassword:  "test-swagger-password",
-		AdminBearerToken: testAdminToken,
-	}
-	config.DB = testDB
-
-	t.Cleanup(func() {
-		config.DB = prevDB
-		config.AppConfig = prevConfig
-	})
-
-	handler := controller.NewHandler(controller.Dependencies{
-		DB:                     testDB,
-		AdminAppVersionService: service.NewAdminAppVersionService(testDB),
-	})
+	previousTestDB := activeTestDB
+	activeTestDB = testDB
+	t.Cleanup(func() { activeTestDB = previousTestDB })
 
 	gin.SetMode(gin.TestMode)
 	return SetupRouter(Dependencies{
-		Handler:          handler,
-		AppMode:          config.AppConfig.AppMode,
-		SwaggerPassword:  config.AppConfig.SwaggerPassword,
-		AdminBearerToken: config.AppConfig.AdminBearerToken,
+		HealthHandler:           health.NewHandler(testDB),
+		AnnouncementHandler:     announcement.NewHandler(announcement.NewService(announcement.NewPostgresRepository(testDB))),
+		AppVersionHandler:       appversion.NewHandler(appversion.NewService(appversion.NewPostgresRepository(testDB))),
+		CampusMapHandler:        campusmap.NewHandler(campusmap.NewService(campusmap.NewPostgresRepository(testDB))),
+		SemesterCalendarHandler: semestercalendar.NewHandler(semestercalendar.NewService(semestercalendar.NewPostgresRepository(testDB))),
+		AppMode:                 "test",
+		SwaggerPassword:         "test-swagger-password",
+		AdminBearerToken:        testAdminToken,
 	}), db
 }
 

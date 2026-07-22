@@ -5,8 +5,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-
-	"github.com/zHElEARN/go-csust-planet/dto"
 )
 
 func TestAdminAnnouncementCRUD(t *testing.T) {
@@ -31,7 +29,7 @@ func TestAdminAnnouncementCRUD(t *testing.T) {
 	}, testAdminToken)
 	assertStatus(t, resp, http.StatusCreated)
 
-	var first dto.AdminAnnouncementResponse
+	var first AdminAnnouncementResponse
 	decodeJSONResponse(t, resp, &first)
 	if first.IsActive {
 		t.Fatalf("expected first announcement to be inactive")
@@ -40,7 +38,7 @@ func TestAdminAnnouncementCRUD(t *testing.T) {
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/announcements", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 
-	var publicList []dto.AnnouncementResponse
+	var publicList []AnnouncementResponse
 	decodeJSONResponse(t, resp, &publicList)
 	if len(publicList) != 0 {
 		t.Fatalf("expected inactive announcement to be hidden from public list, got %d items", len(publicList))
@@ -54,13 +52,13 @@ func TestAdminAnnouncementCRUD(t *testing.T) {
 	}, testAdminToken)
 	assertStatus(t, resp, http.StatusCreated)
 
-	var second dto.AdminAnnouncementResponse
+	var second AdminAnnouncementResponse
 	decodeJSONResponse(t, resp, &second)
 
 	resp = performRequest(t, r, http.MethodGet, "/v1/admin/announcements", nil, testAdminToken)
 	assertStatus(t, resp, http.StatusOK)
 
-	var adminList []dto.AdminAnnouncementResponse
+	var adminList []AdminAnnouncementResponse
 	decodeJSONResponse(t, resp, &adminList)
 	if len(adminList) != 2 {
 		t.Fatalf("expected 2 announcements in admin list, got %d", len(adminList))
@@ -72,7 +70,7 @@ func TestAdminAnnouncementCRUD(t *testing.T) {
 	resp = performRequest(t, r, http.MethodGet, "/v1/admin/announcements/"+first.ID, nil, testAdminToken)
 	assertStatus(t, resp, http.StatusOK)
 
-	var detail dto.AdminAnnouncementResponse
+	var detail AdminAnnouncementResponse
 	decodeJSONResponse(t, resp, &detail)
 	if detail.Content != "内容 A" {
 		t.Fatalf("expected announcement content to match, got %q", detail.Content)
@@ -86,7 +84,7 @@ func TestAdminAnnouncementCRUD(t *testing.T) {
 	}, testAdminToken)
 	assertStatus(t, resp, http.StatusOK)
 
-	var updated dto.AdminAnnouncementResponse
+	var updated AdminAnnouncementResponse
 	decodeJSONResponse(t, resp, &updated)
 	if !updated.IsActive || !updated.IsBanner {
 		t.Fatalf("expected updated announcement to be active banner")
