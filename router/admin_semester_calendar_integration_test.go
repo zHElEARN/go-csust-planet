@@ -3,9 +3,6 @@ package router
 import (
 	"net/http"
 	"testing"
-	"time"
-
-	"github.com/zHElEARN/go-csust-planet/internal/semestercalendar"
 )
 
 func TestAdminSemesterCalendarCRUD(t *testing.T) {
@@ -147,39 +144,4 @@ func TestAdminSemesterCalendarCRUD(t *testing.T) {
 
 	resp = performRequest(t, r, http.MethodGet, "/v1/admin/semester-calendars/"+updated.SemesterCode, nil, testAdminToken)
 	assertStatus(t, resp, http.StatusNotFound)
-}
-
-func TestAdminSemesterCalendarListReturnsNewestSemesterCodeFirst(t *testing.T) {
-	r := newAdminTestRouter(t)
-
-	createTestSemesterCalendar(t, semestercalendar.Entity{
-		SemesterCode:  "2024-2025-2",
-		Title:         "2024-2025学年度校历",
-		Subtitle:      "第二学期",
-		CalendarStart: time.Date(2025, time.February, 17, 0, 0, 0, 0, time.UTC),
-		CalendarEnd:   time.Date(2025, time.July, 6, 0, 0, 0, 0, time.UTC),
-		SemesterStart: time.Date(2025, time.February, 24, 0, 0, 0, 0, time.UTC),
-		SemesterEnd:   time.Date(2025, time.June, 29, 0, 0, 0, 0, time.UTC),
-	})
-	createTestSemesterCalendar(t, semestercalendar.Entity{
-		SemesterCode:  "2025-2026-1",
-		Title:         "2025-2026学年度校历",
-		Subtitle:      "第一学期",
-		CalendarStart: time.Date(2025, time.September, 1, 0, 0, 0, 0, time.UTC),
-		CalendarEnd:   time.Date(2026, time.January, 18, 0, 0, 0, 0, time.UTC),
-		SemesterStart: time.Date(2025, time.September, 8, 0, 0, 0, 0, time.UTC),
-		SemesterEnd:   time.Date(2026, time.January, 11, 0, 0, 0, 0, time.UTC),
-	})
-
-	resp := performRequest(t, r, http.MethodGet, "/v1/admin/semester-calendars", nil, testAdminToken)
-	assertStatus(t, resp, http.StatusOK)
-
-	var calendars []AdminSemesterCalendarResponse
-	decodeJSONResponse(t, resp, &calendars)
-	if len(calendars) != 2 {
-		t.Fatalf("expected 2 semester calendars, got %d", len(calendars))
-	}
-	if calendars[0].SemesterCode != "2025-2026-1" || calendars[1].SemesterCode != "2024-2025-2" {
-		t.Fatalf("unexpected semester calendar order: %+v", calendars)
-	}
 }

@@ -87,27 +87,6 @@ func TestInitialMigrationAcceptsCurrentSchemaReadOnly(t *testing.T) {
 	if _, err := tx.ExecContext(context.Background(), initialMigrationSQL[start:end]); err != nil {
 		t.Fatalf("current schema is incompatible with V1: %v", err)
 	}
-
-	var state struct {
-		BusinessTableCount int64
-		HasGooseHistory    bool
-	}
-	if err := db.Raw(`
-		SELECT
-			(SELECT count(*)
-			 FROM information_schema.tables
-			 WHERE table_schema = 'public'
-			   AND table_name IN ('announcements', 'app_versions', 'campus_map_features', 'semester_calendars')) AS business_table_count,
-			to_regclass('public.goose_db_version') IS NOT NULL AS has_goose_history
-	`).Scan(&state).Error; err != nil {
-		t.Fatalf("failed to read database state: %v", err)
-	}
-	t.Logf("V1-compatible schema: business_tables=%d goose_history=%t", state.BusinessTableCount, state.HasGooseHistory)
-	if state.BusinessTableCount == 4 {
-		for _, fingerprint := range readFingerprints(t, db) {
-			t.Logf("business data: table=%s rows=%d fingerprint=%s", fingerprint.TableName, fingerprint.RowCount, fingerprint.Fingerprint)
-		}
-	}
 }
 
 func openTestDB(t *testing.T) *gorm.DB {

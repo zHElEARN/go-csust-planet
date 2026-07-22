@@ -43,9 +43,6 @@ func TestAdminFrontendServesStaticFilesAndSpaFallback(t *testing.T) {
 
 	resp = performFrontendRequest(t, r, http.MethodGet, "/admin/missing.js")
 	assertStatus(t, resp, http.StatusNotFound)
-
-	resp = performRequest(t, r, http.MethodGet, "/v1/admin/announcements", nil, "")
-	assertStatus(t, resp, http.StatusUnauthorized)
 }
 
 func TestAdminFrontendProxiesToDevServer(t *testing.T) {

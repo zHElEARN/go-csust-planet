@@ -169,7 +169,6 @@ func TestAdminAppVersionCreateIsConcurrencySafe(t *testing.T) {
 
 	start := make(chan struct{})
 	results := make(chan int, 2)
-	bodies := make(chan string, 2)
 
 	var wg sync.WaitGroup
 	for range 2 {
@@ -180,14 +179,12 @@ func TestAdminAppVersionCreateIsConcurrencySafe(t *testing.T) {
 
 			resp := performRequest(t, r, http.MethodPost, "/v1/admin/app-versions", requestBody, testAdminToken)
 			results <- resp.Code
-			bodies <- resp.Body.String()
 		}()
 	}
 
 	close(start)
 	wg.Wait()
 	close(results)
-	close(bodies)
 
 	var createdCount int
 	var conflictCount int
