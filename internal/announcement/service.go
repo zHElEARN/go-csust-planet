@@ -1,6 +1,7 @@
 package announcement
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,23 +16,28 @@ type Upsert struct {
 	IsBanner bool
 }
 
-func NewService(repository Repository) *Service     { return &Service{repository: repository} }
-func (s *Service) List() ([]Entity, error)          { return s.repository.List() }
-func (s *Service) ListActive() ([]Entity, error)    { return s.repository.ListActive() }
-func (s *Service) Get(id uuid.UUID) (Entity, error) { return s.repository.Get(id) }
-
-func (s *Service) Create(input Upsert) (Entity, error) {
-	return s.repository.Create(Entity{ID: uuid.New(), Title: input.Title, Content: input.Content, IsActive: input.IsActive, IsBanner: input.IsBanner, CreatedAt: time.Now().UTC()})
+func NewService(repository Repository) *Service { return &Service{repository: repository} }
+func (s *Service) List(ctx context.Context) ([]Entity, error) {
+	return s.repository.List(ctx)
+}
+func (s *Service) ListActive(ctx context.Context) ([]Entity, error) {
+	return s.repository.ListActive(ctx)
+}
+func (s *Service) Get(ctx context.Context, id uuid.UUID) (Entity, error) {
+	return s.repository.Get(ctx, id)
 }
 
-func (s *Service) Update(id uuid.UUID, input Upsert) (Entity, error) {
-	entity, err := s.repository.Get(id)
-	if err != nil {
-		return Entity{}, err
-	}
-	entity.Title, entity.Content = input.Title, input.Content
-	entity.IsActive, entity.IsBanner = input.IsActive, input.IsBanner
-	return s.repository.Update(entity)
+func (s *Service) Create(ctx context.Context, input Upsert) (Entity, error) {
+	return s.repository.Create(ctx, Entity{ID: uuid.New(), Title: input.Title, Content: input.Content, IsActive: input.IsActive, IsBanner: input.IsBanner, CreatedAt: time.Now().UTC()})
 }
 
-func (s *Service) Delete(id uuid.UUID) error { return s.repository.Delete(id) }
+func (s *Service) Update(ctx context.Context, id uuid.UUID, input Upsert) (Entity, error) {
+	return s.repository.Update(ctx, id, Entity{
+		Title: input.Title, Content: input.Content,
+		IsActive: input.IsActive, IsBanner: input.IsBanner,
+	})
+}
+
+func (s *Service) Delete(ctx context.Context, id uuid.UUID) error {
+	return s.repository.Delete(ctx, id)
+}

@@ -1,10 +1,12 @@
 package semestercalendar
 
+import "context"
+
 type Repository interface {
-	List() ([]Entity, error)
-	ListSummaries() ([]Entity, error)
-	Get(string) (Entity, error)
-	Create(Entity) (Entity, error)
-	Update(Entity) (Entity, error)
-	Delete(string) error
+	List(context.Context) ([]Entity, error)
+	ListSummaries(context.Context) ([]Entity, error)
+	Get(context.Context, string) (Entity, error)
+	Create(context.Context, Entity) (Entity, error)
+	Update(context.Context, string, Entity) (Entity, error)
+	Delete(context.Context, string) error
 }

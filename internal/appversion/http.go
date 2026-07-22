@@ -65,6 +65,7 @@ func NewHandler(service *Service) *Handler { return &Handler{service: service} }
 // @Success 200 {array} publicResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /config/app-versions [get]
 func (h *Handler) GetAppVersions(c *gin.Context) {
 	var request listRequest
@@ -72,8 +73,11 @@ func (h *Handler) GetAppVersions(c *gin.Context) {
 		response.ResponseError(c, http.StatusBadRequest, "无效的请求参数")
 		return
 	}
-	entities, err := h.service.ListByPlatform(request.Platform)
+	entities, err := h.service.ListByPlatform(c.Request.Context(), request.Platform)
 	if err != nil {
+		if response.HandleContextError(c, err) {
+			return
+		}
 		log.Printf("[ERROR] 获取版本信息失败 platform=%s: %v", request.Platform, err)
 		response.ResponseError(c, http.StatusInternalServerError, "获取版本信息失败")
 		return
@@ -95,6 +99,7 @@ func (h *Handler) GetAppVersions(c *gin.Context) {
 // @Success 200 {object} checkResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /config/app-versions/check [get]
 func (h *Handler) CheckAppVersion(c *gin.Context) {
 	var request checkRequest
@@ -102,8 +107,11 @@ func (h *Handler) CheckAppVersion(c *gin.Context) {
 		response.ResponseError(c, http.StatusBadRequest, "无效的请求参数")
 		return
 	}
-	result, err := h.service.CheckUpdate(request.Platform, request.CurrentVersionCode)
+	result, err := h.service.CheckUpdate(c.Request.Context(), request.Platform, request.CurrentVersionCode)
 	if err != nil {
+		if response.HandleContextError(c, err) {
+			return
+		}
 		log.Printf("[ERROR] 检查版本更新失败 platform=%s current_version_code=%d: %v", request.Platform, request.CurrentVersionCode, err)
 		response.ResponseError(c, http.StatusInternalServerError, "检查版本更新失败")
 		return
@@ -125,10 +133,14 @@ func (h *Handler) CheckAppVersion(c *gin.Context) {
 // @Success 200 {array} adminResponse
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /admin/app-versions [get]
 func (h *Handler) GetAdminAppVersions(c *gin.Context) {
-	entities, err := h.service.List()
+	entities, err := h.service.List(c.Request.Context())
 	if err != nil {
+		if response.HandleContextError(c, err) {
+			return
+		}
 		log.Printf("[ERROR] 获取后台版本列表失败: %v", err)
 		response.ResponseError(c, http.StatusInternalServerError, "获取版本列表失败")
 		return
@@ -152,13 +164,14 @@ func (h *Handler) GetAdminAppVersions(c *gin.Context) {
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /admin/app-versions/{id} [get]
 func (h *Handler) GetAdminAppVersion(c *gin.Context) {
 	id, ok := parseID(c)
 	if !ok {
 		return
 	}
-	entity, err := h.service.Get(id)
+	entity, err := h.service.Get(c.Request.Context(), id)
 	if !h.handleError(c, err, "获取版本详情失败") {
 		return
 	}
@@ -178,13 +191,14 @@ func (h *Handler) GetAdminAppVersion(c *gin.Context) {
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 409 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /admin/app-versions [post]
 func (h *Handler) CreateAppVersion(c *gin.Context) {
 	input, ok := bindUpsert(c)
 	if !ok {
 		return
 	}
-	entity, err := h.service.Create(input)
+	entity, err := h.service.Create(c.Request.Context(), input)
 	if !h.handleError(c, err, "创建版本失败") {
 		return
 	}
@@ -206,6 +220,7 @@ func (h *Handler) CreateAppVersion(c *gin.Context) {
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 409 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /admin/app-versions/{id} [put]
 func (h *Handler) UpdateAppVersion(c *gin.Context) {
 	id, ok := parseID(c)
@@ -216,7 +231,7 @@ func (h *Handler) UpdateAppVersion(c *gin.Context) {
 	if !ok {
 		return
 	}
-	entity, err := h.service.Update(id, input)
+	entity, err := h.service.Update(c.Request.Context(), id, input)
 	if !h.handleError(c, err, "更新版本失败") {
 		return
 	}
@@ -235,13 +250,14 @@ func (h *Handler) UpdateAppVersion(c *gin.Context) {
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /admin/app-versions/{id} [delete]
 func (h *Handler) DeleteAppVersion(c *gin.Context) {
 	id, ok := parseID(c)
 	if !ok {
 		return
 	}
-	if !h.handleError(c, h.service.Delete(id), "删除版本失败") {
+	if !h.handleError(c, h.service.Delete(c.Request.Context(), id), "删除版本失败") {
 		return
 	}
 	c.Status(http.StatusNoContent)
@@ -259,6 +275,9 @@ func bindUpsert(c *gin.Context) (Upsert, bool) {
 func (h *Handler) handleError(c *gin.Context, err error, message string) bool {
 	if err == nil {
 		return true
+	}
+	if response.HandleContextError(c, err) {
+		return false
 	}
 	if errors.Is(err, ErrNotFound) {
 		response.ResponseError(c, http.StatusNotFound, "未找到该版本")

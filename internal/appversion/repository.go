@@ -1,14 +1,18 @@
 package appversion
 
-import "github.com/google/uuid"
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
 
 type Repository interface {
-	List() ([]Entity, error)
-	ListByPlatform(string) ([]Entity, error)
-	Get(uuid.UUID) (Entity, error)
-	LatestByPlatform(string) (*Entity, error)
-	HasForceUpdateAfter(string, int) (bool, error)
-	Create(Entity) (Entity, error)
-	Update(Entity) (Entity, error)
-	Delete(uuid.UUID) error
+	List(context.Context) ([]Entity, error)
+	ListByPlatform(context.Context, string) ([]Entity, error)
+	Get(context.Context, uuid.UUID) (Entity, error)
+	LatestByPlatform(context.Context, string) (*Entity, error)
+	HasForceUpdateAfter(context.Context, string, int) (bool, error)
+	Create(context.Context, Entity) (Entity, error)
+	Update(context.Context, uuid.UUID, Entity) (Entity, error)
+	Delete(context.Context, uuid.UUID) error
 }

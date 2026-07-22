@@ -47,10 +47,14 @@ func NewHandler(service *Service) *Handler { return &Handler{service: service} }
 // @Produce json
 // @Success 200 {array} announcementResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /config/announcements [get]
 func (h *Handler) GetAnnouncements(c *gin.Context) {
-	entities, err := h.service.ListActive()
+	entities, err := h.service.ListActive(c.Request.Context())
 	if err != nil {
+		if response.HandleContextError(c, err) {
+			return
+		}
 		log.Printf("[ERROR] 获取公告失败: %v", err)
 		response.ResponseError(c, http.StatusInternalServerError, "获取公告失败")
 		return
@@ -71,10 +75,14 @@ func (h *Handler) GetAnnouncements(c *gin.Context) {
 // @Success 200 {array} adminAnnouncementResponse
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /admin/announcements [get]
 func (h *Handler) GetAdminAnnouncements(c *gin.Context) {
-	entities, err := h.service.List()
+	entities, err := h.service.List(c.Request.Context())
 	if err != nil {
+		if response.HandleContextError(c, err) {
+			return
+		}
 		log.Printf("[ERROR] 获取后台公告列表失败: %v", err)
 		response.ResponseError(c, http.StatusInternalServerError, "获取公告列表失败")
 		return
@@ -98,6 +106,7 @@ func (h *Handler) GetAdminAnnouncements(c *gin.Context) {
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /admin/announcements/{id} [get]
 func (h *Handler) GetAdminAnnouncement(c *gin.Context) {
 	entity, ok := h.get(c)
@@ -119,14 +128,18 @@ func (h *Handler) GetAdminAnnouncement(c *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /admin/announcements [post]
 func (h *Handler) CreateAnnouncement(c *gin.Context) {
 	input, ok := bindUpsert(c)
 	if !ok {
 		return
 	}
-	entity, err := h.service.Create(input)
+	entity, err := h.service.Create(c.Request.Context(), input)
 	if err != nil {
+		if response.HandleContextError(c, err) {
+			return
+		}
 		log.Printf("[ERROR] 创建公告失败: %v", err)
 		response.ResponseError(c, http.StatusInternalServerError, "创建公告失败")
 		return
@@ -148,6 +161,7 @@ func (h *Handler) CreateAnnouncement(c *gin.Context) {
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /admin/announcements/{id} [put]
 func (h *Handler) UpdateAnnouncement(c *gin.Context) {
 	id, ok := parseID(c)
@@ -158,7 +172,7 @@ func (h *Handler) UpdateAnnouncement(c *gin.Context) {
 	if !ok {
 		return
 	}
-	entity, err := h.service.Update(id, input)
+	entity, err := h.service.Update(c.Request.Context(), id, input)
 	if !h.handleError(c, err, "更新公告失败") {
 		return
 	}
@@ -177,13 +191,14 @@ func (h *Handler) UpdateAnnouncement(c *gin.Context) {
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /admin/announcements/{id} [delete]
 func (h *Handler) DeleteAnnouncement(c *gin.Context) {
 	id, ok := parseID(c)
 	if !ok {
 		return
 	}
-	if !h.handleError(c, h.service.Delete(id), "删除公告失败") {
+	if !h.handleError(c, h.service.Delete(c.Request.Context(), id), "删除公告失败") {
 		return
 	}
 	c.Status(http.StatusNoContent)
@@ -194,7 +209,7 @@ func (h *Handler) get(c *gin.Context) (Entity, bool) {
 	if !ok {
 		return Entity{}, false
 	}
-	entity, err := h.service.Get(id)
+	entity, err := h.service.Get(c.Request.Context(), id)
 	if !h.handleError(c, err, "获取公告详情失败") {
 		return Entity{}, false
 	}
@@ -204,6 +219,9 @@ func (h *Handler) get(c *gin.Context) (Entity, bool) {
 func (h *Handler) handleError(c *gin.Context, err error, message string) bool {
 	if err == nil {
 		return true
+	}
+	if response.HandleContextError(c, err) {
+		return false
 	}
 	if errors.Is(err, ErrNotFound) {
 		response.ResponseError(c, http.StatusNotFound, "未找到该公告")

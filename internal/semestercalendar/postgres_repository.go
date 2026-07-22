@@ -1,29 +1,31 @@
 package semestercalendar
 
 import (
+	"context"
 	"errors"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type PostgresRepository struct{ db *gorm.DB }
 
 func NewPostgresRepository(db *gorm.DB) *PostgresRepository { return &PostgresRepository{db: db} }
 
-func (r *PostgresRepository) List() ([]Entity, error) {
+func (r *PostgresRepository) List(ctx context.Context) ([]Entity, error) {
 	var entities []Entity
-	return entities, r.db.Order("semester_code desc").Find(&entities).Error
+	return entities, r.db.WithContext(ctx).Order("semester_code desc").Find(&entities).Error
 }
 
-func (r *PostgresRepository) ListSummaries() ([]Entity, error) {
+func (r *PostgresRepository) ListSummaries(ctx context.Context) ([]Entity, error) {
 	var entities []Entity
-	return entities, r.db.Select("semester_code", "title", "subtitle").Order("semester_code desc").Find(&entities).Error
+	return entities, r.db.WithContext(ctx).Select("semester_code", "title", "subtitle").Order("semester_code desc").Find(&entities).Error
 }
 
-func (r *PostgresRepository) Get(code string) (Entity, error) {
+func (r *PostgresRepository) Get(ctx context.Context, code string) (Entity, error) {
 	var entity Entity
-	if err := r.db.Where("semester_code = ?", code).First(&entity).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("semester_code = ?", code).First(&entity).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return Entity{}, ErrNotFound
 		}
@@ -32,8 +34,8 @@ func (r *PostgresRepository) Get(code string) (Entity, error) {
 	return entity, nil
 }
 
-func (r *PostgresRepository) Create(entity Entity) (Entity, error) {
-	err := r.db.Transaction(func(tx *gorm.DB) error {
+func (r *PostgresRepository) Create(ctx context.Context, entity Entity) (Entity, error) {
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		return tx.Create(&entity).Error
 	})
 	if isDuplicateKey(err) {
@@ -42,9 +44,25 @@ func (r *PostgresRepository) Create(entity Entity) (Entity, error) {
 	return entity, err
 }
 
-func (r *PostgresRepository) Update(entity Entity) (Entity, error) {
-	err := r.db.Transaction(func(tx *gorm.DB) error {
-		return tx.Save(&entity).Error
+func (r *PostgresRepository) Update(ctx context.Context, code string, values Entity) (Entity, error) {
+	var entity Entity
+	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Model(&entity).
+			Clauses(clause.Returning{}).
+			Where("semester_code = ?", code).
+			Select(
+				"semester_code", "title", "subtitle",
+				"calendar_start", "calendar_end", "semester_start", "semester_end",
+				"notes", "custom_week_ranges",
+			).
+			Updates(values)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return ErrNotFound
+		}
+		return nil
 	})
 	if isDuplicateKey(err) {
 		return Entity{}, ErrConflict
@@ -52,12 +70,15 @@ func (r *PostgresRepository) Update(entity Entity) (Entity, error) {
 	return entity, err
 }
 
-func (r *PostgresRepository) Delete(code string) error {
-	entity, err := r.Get(code)
-	if err != nil {
-		return err
+func (r *PostgresRepository) Delete(ctx context.Context, code string) error {
+	result := r.db.WithContext(ctx).Where("semester_code = ?", code).Delete(&Entity{})
+	if result.Error != nil {
+		return result.Error
 	}
-	return r.db.Delete(&entity).Error
+	if result.RowsAffected == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 func isDuplicateKey(err error) bool {

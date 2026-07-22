@@ -45,6 +45,7 @@ func SetupRouter(deps Dependencies) *gin.Engine {
 	r.GET("/healthz", deps.HealthHandler.Check)
 
 	v1 := r.Group("/v1")
+	v1.Use(requestTimeout(businessRequestTimeout))
 
 	swaggerGroup := r.Group("/swagger", gin.BasicAuth(gin.Accounts{
 		"swagger": deps.SwaggerPassword,

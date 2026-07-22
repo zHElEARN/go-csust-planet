@@ -2,16 +2,16 @@ package postgres_test
 
 import (
 	"context"
-	"database/sql"
 	_ "embed"
 	"fmt"
 	"reflect"
-	"strings"
 	"testing"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	"github.com/zHElEARN/go-csust-planet/internal/appversion"
 	internalpostgres "github.com/zHElEARN/go-csust-planet/internal/postgres"
 	"github.com/zHElEARN/go-csust-planet/testsupport"
 )
@@ -22,8 +22,8 @@ type tableFingerprint struct {
 	Fingerprint string
 }
 
-//go:embed migrations/00001_initial_schema.sql
-var initialMigrationSQL string
+//go:embed migrations/00002_unique_app_version.sql
+var uniqueAppVersionMigrationSQL string
 
 func TestMigratePreservesBusinessDataAndIsIdempotent(t *testing.T) {
 	db := openTestDB(t)
@@ -42,8 +42,8 @@ func TestMigratePreservesBusinessDataAndIsIdempotent(t *testing.T) {
 		if err != nil {
 			t.Fatalf("fresh database migration failed: %v", err)
 		}
-		if version != 1 {
-			t.Fatalf("fresh database migration returned version %d, want 1", version)
+		if version != 2 {
+			t.Fatalf("fresh database migration returned version %d, want 2", version)
 		}
 	} else if tableCount != 4 {
 		t.Fatalf("test database has %d of 4 business tables", tableCount)
@@ -55,8 +55,8 @@ func TestMigratePreservesBusinessDataAndIsIdempotent(t *testing.T) {
 		if err != nil {
 			t.Fatalf("migration run %d failed: %v", run, err)
 		}
-		if version != 1 {
-			t.Fatalf("migration run %d returned version %d, want 1", run, version)
+		if version != 2 {
+			t.Fatalf("migration run %d returned version %d, want 2", run, version)
 		}
 	}
 	after := readFingerprints(t, db)
@@ -65,27 +65,84 @@ func TestMigratePreservesBusinessDataAndIsIdempotent(t *testing.T) {
 	}
 }
 
-func TestInitialMigrationAcceptsCurrentSchemaReadOnly(t *testing.T) {
+func TestAppVersionPlatformVersionIndexIsUnique(t *testing.T) {
 	db := openTestDB(t)
-	sqlDB, err := db.DB()
-	if err != nil {
-		t.Fatalf("failed to obtain sql database: %v", err)
+
+	var unique bool
+	if err := db.Raw(`
+		SELECT i.indisunique
+		FROM pg_catalog.pg_index AS i
+		JOIN pg_catalog.pg_class AS c ON c.oid = i.indexrelid
+		JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
+		WHERE n.nspname = 'public' AND c.relname = 'idx_platform_version'
+	`).Scan(&unique).Error; err != nil {
+		t.Fatalf("failed to inspect app version index: %v", err)
+	}
+	if !unique {
+		t.Fatal("expected idx_platform_version to be unique")
 	}
 
-	const statementEnd = "-- +goose StatementEnd"
-	start := strings.Index(initialMigrationSQL, "DO $migration$")
-	end := strings.Index(initialMigrationSQL, statementEnd)
-	if start < 0 || end <= start {
-		t.Fatal("failed to locate V1 baseline validation block")
+	tx := db.Begin()
+	if tx.Error != nil {
+		t.Fatalf("failed to begin duplicate check transaction: %v", tx.Error)
+	}
+	t.Cleanup(func() { _ = tx.Rollback().Error })
+
+	versionCode := int(time.Now().UnixNano() % 1_000_000_000)
+	first := appversion.Entity{Platform: "migration-test", VersionCode: versionCode, VersionName: "first", ReleaseNotes: "first", DownloadURL: "https://example.com/first"}
+	second := appversion.Entity{Platform: first.Platform, VersionCode: versionCode, VersionName: "second", ReleaseNotes: "second", DownloadURL: "https://example.com/second"}
+	if err := tx.Create(&first).Error; err != nil {
+		t.Fatalf("failed to create first app version: %v", err)
+	}
+	if err := tx.Create(&second).Error; err == nil {
+		t.Fatal("expected duplicate app version insert to fail")
+	}
+}
+
+func TestUniqueAppVersionMigrationRejectsDuplicatesWithoutDeletingThem(t *testing.T) {
+	db := openTestDB(t)
+	tx := db.Begin()
+	if tx.Error != nil {
+		t.Fatalf("failed to begin migration failure transaction: %v", tx.Error)
+	}
+	t.Cleanup(func() { _ = tx.Rollback().Error })
+
+	if err := tx.Exec("DROP INDEX public.idx_platform_version").Error; err != nil {
+		t.Fatalf("failed to drop unique index fixture: %v", err)
+	}
+	if err := tx.Exec("CREATE INDEX idx_platform_version ON public.app_versions (platform, version_code)").Error; err != nil {
+		t.Fatalf("failed to create non-unique index fixture: %v", err)
 	}
 
-	tx, err := sqlDB.BeginTx(context.Background(), &sql.TxOptions{ReadOnly: true})
-	if err != nil {
-		t.Fatalf("failed to begin read-only schema validation: %v", err)
+	versionCode := int(time.Now().UnixNano() % 1_000_000_000)
+	for _, name := range []string{"first", "second"} {
+		entity := appversion.Entity{
+			Platform: "duplicate-migration-test", VersionCode: versionCode, VersionName: name,
+			ReleaseNotes: name, DownloadURL: "https://example.com/" + name,
+		}
+		if err := tx.Create(&entity).Error; err != nil {
+			t.Fatalf("failed to create duplicate fixture %q: %v", name, err)
+		}
 	}
-	t.Cleanup(func() { _ = tx.Rollback() })
-	if _, err := tx.ExecContext(context.Background(), initialMigrationSQL[start:end]); err != nil {
-		t.Fatalf("current schema is incompatible with V1: %v", err)
+
+	if err := tx.Exec("SAVEPOINT before_v2_migration").Error; err != nil {
+		t.Fatalf("failed to create migration savepoint: %v", err)
+	}
+	if err := tx.Exec(uniqueAppVersionMigrationSQL).Error; err == nil {
+		t.Fatal("expected V2 migration to fail for duplicate app versions")
+	}
+	if err := tx.Exec("ROLLBACK TO SAVEPOINT before_v2_migration").Error; err != nil {
+		t.Fatalf("failed to recover from expected migration error: %v", err)
+	}
+
+	var count int64
+	if err := tx.Model(&appversion.Entity{}).
+		Where("platform = ? AND version_code = ?", "duplicate-migration-test", versionCode).
+		Count(&count).Error; err != nil {
+		t.Fatalf("failed to count duplicate fixtures: %v", err)
+	}
+	if count != 2 {
+		t.Fatalf("expected migration failure to preserve both duplicate rows, got %d", count)
 	}
 }
 

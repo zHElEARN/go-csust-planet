@@ -1,12 +1,16 @@
 package announcement
 
-import "github.com/google/uuid"
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
 
 type Repository interface {
-	List() ([]Entity, error)
-	ListActive() ([]Entity, error)
-	Get(uuid.UUID) (Entity, error)
-	Create(Entity) (Entity, error)
-	Update(Entity) (Entity, error)
-	Delete(uuid.UUID) error
+	List(context.Context) ([]Entity, error)
+	ListActive(context.Context) ([]Entity, error)
+	Get(context.Context, uuid.UUID) (Entity, error)
+	Create(context.Context, Entity) (Entity, error)
+	Update(context.Context, uuid.UUID, Entity) (Entity, error)
+	Delete(context.Context, uuid.UUID) error
 }

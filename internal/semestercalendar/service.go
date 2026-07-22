@@ -1,6 +1,9 @@
 package semestercalendar
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type Service struct{ repository Repository }
 
@@ -16,26 +19,28 @@ type Upsert struct {
 	CustomWeekRanges []CustomWeekRange
 }
 
-func NewService(repository Repository) *Service     { return &Service{repository: repository} }
-func (s *Service) List() ([]Entity, error)          { return s.repository.List() }
-func (s *Service) ListSummaries() ([]Entity, error) { return s.repository.ListSummaries() }
-func (s *Service) Get(code string) (Entity, error)  { return s.repository.Get(code) }
-
-func (s *Service) Create(input Upsert) (Entity, error) { return s.repository.Create(fromUpsert(input)) }
-
-func (s *Service) Update(code string, input Upsert) (Entity, error) {
-	entity, err := s.repository.Get(code)
-	if err != nil {
-		return Entity{}, err
-	}
-	entity.SemesterCode, entity.Title, entity.Subtitle = input.SemesterCode, input.Title, input.Subtitle
-	entity.CalendarStart, entity.CalendarEnd = input.CalendarStart, input.CalendarEnd
-	entity.SemesterStart, entity.SemesterEnd = input.SemesterStart, input.SemesterEnd
-	entity.Notes, entity.CustomWeekRanges = normalizeNotes(input.Notes), normalizeRanges(input.CustomWeekRanges)
-	return s.repository.Update(entity)
+func NewService(repository Repository) *Service { return &Service{repository: repository} }
+func (s *Service) List(ctx context.Context) ([]Entity, error) {
+	return s.repository.List(ctx)
+}
+func (s *Service) ListSummaries(ctx context.Context) ([]Entity, error) {
+	return s.repository.ListSummaries(ctx)
+}
+func (s *Service) Get(ctx context.Context, code string) (Entity, error) {
+	return s.repository.Get(ctx, code)
 }
 
-func (s *Service) Delete(code string) error { return s.repository.Delete(code) }
+func (s *Service) Create(ctx context.Context, input Upsert) (Entity, error) {
+	return s.repository.Create(ctx, fromUpsert(input))
+}
+
+func (s *Service) Update(ctx context.Context, code string, input Upsert) (Entity, error) {
+	return s.repository.Update(ctx, code, fromUpsert(input))
+}
+
+func (s *Service) Delete(ctx context.Context, code string) error {
+	return s.repository.Delete(ctx, code)
+}
 
 func fromUpsert(input Upsert) Entity {
 	return Entity{SemesterCode: input.SemesterCode, Title: input.Title, Subtitle: input.Subtitle, CalendarStart: input.CalendarStart, CalendarEnd: input.CalendarEnd, SemesterStart: input.SemesterStart, SemesterEnd: input.SemesterEnd, Notes: normalizeNotes(input.Notes), CustomWeekRanges: normalizeRanges(input.CustomWeekRanges)}

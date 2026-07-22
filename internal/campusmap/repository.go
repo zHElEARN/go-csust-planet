@@ -1,3 +1,7 @@
 package campusmap
 
-type Repository interface{ List() ([]Entity, error) }
+import "context"
+
+type Repository interface {
+	List(context.Context) ([]Entity, error)
+}

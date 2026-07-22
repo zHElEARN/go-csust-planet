@@ -305,6 +305,10 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       summary: 获取后台公告列表
       tags:
       - admin
@@ -341,6 +345,10 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 创建公告
@@ -381,6 +389,10 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       summary: 删除公告
       tags:
       - admin
@@ -418,6 +430,10 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 获取后台公告详情
@@ -467,6 +483,10 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       summary: 更新公告
       tags:
       - admin
@@ -494,6 +514,10 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 获取后台 App 版本列表
@@ -538,6 +562,10 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       summary: 创建 App 版本
       tags:
       - admin
@@ -574,6 +602,10 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 删除 App 版本
@@ -613,6 +645,10 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 获取后台 App 版本详情
@@ -666,6 +702,10 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       summary: 更新 App 版本
       tags:
       - admin
@@ -693,6 +733,10 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 获取后台校历列表
@@ -737,6 +781,10 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       summary: 创建校历
       tags:
       - admin
@@ -769,6 +817,10 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 删除校历
@@ -804,6 +856,10 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 获取后台校历详情
@@ -857,6 +913,10 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       summary: 更新校历
       tags:
       - admin
@@ -874,6 +934,10 @@ paths:
             type: array
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 获取公告列表
@@ -906,6 +970,10 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 获取App所有版本
@@ -943,6 +1011,10 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       summary: 检查App版本更新
       tags:
       - config
@@ -958,6 +1030,10 @@ paths:
             $ref: '#/definitions/campusmap.responseBody'
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 获取校园地图数据
@@ -977,6 +1053,10 @@ paths:
             type: array
         "500":
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 获取校历列表
@@ -1004,6 +1084,10 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
         "404":
           description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "504":
+          description: Gateway Timeout
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 获取校历详情

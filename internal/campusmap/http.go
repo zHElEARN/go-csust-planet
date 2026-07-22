@@ -31,10 +31,14 @@ func NewHandler(service *Service) *Handler { return &Handler{service: service} }
 // @Produce json
 // @Success 200 {object} responseBody
 // @Failure 500 {object} response.ErrorResponse
+// @Failure 504 {object} response.ErrorResponse
 // @Router /config/campus-map [get]
 func (h *Handler) GetCampusMap(c *gin.Context) {
-	entities, err := h.service.List()
+	entities, err := h.service.List(c.Request.Context())
 	if err != nil {
+		if response.HandleContextError(c, err) {
+			return
+		}
 		log.Printf("[ERROR] 获取校园地图数据失败: %v", err)
 		response.ResponseError(c, http.StatusInternalServerError, "获取校园地图数据失败")
 		return
