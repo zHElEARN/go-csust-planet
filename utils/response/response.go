@@ -18,12 +18,13 @@ func ResponseError(c *gin.Context, code int, message string) {
 }
 
 func HandleContextError(c *gin.Context, err error) bool {
-	if errors.Is(err, context.DeadlineExceeded) {
-		ResponseError(c, http.StatusGatewayTimeout, "请求处理超时")
+	requestErr := c.Request.Context().Err()
+	if errors.Is(err, context.DeadlineExceeded) || errors.Is(requestErr, context.DeadlineExceeded) {
+		ResponseError(c, http.StatusServiceUnavailable, "请求处理超时")
 		c.Abort()
 		return true
 	}
-	if errors.Is(err, context.Canceled) {
+	if errors.Is(err, context.Canceled) || errors.Is(requestErr, context.Canceled) {
 		c.Abort()
 		return true
 	}

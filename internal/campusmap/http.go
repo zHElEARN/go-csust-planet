@@ -31,7 +31,7 @@ func NewHandler(service *Service) *Handler { return &Handler{service: service} }
 // @Produce json
 // @Success 200 {object} responseBody
 // @Failure 500 {object} response.ErrorResponse
-// @Failure 504 {object} response.ErrorResponse
+// @Failure 503 {object} response.ErrorResponse
 // @Router /config/campus-map [get]
 func (h *Handler) GetCampusMap(c *gin.Context) {
 	entities, err := h.service.List(c.Request.Context())

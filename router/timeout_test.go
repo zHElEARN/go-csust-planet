@@ -37,7 +37,7 @@ func (r *canceledAnnouncementRepository) Update(context.Context, uuid.UUID, anno
 }
 func (r *canceledAnnouncementRepository) Delete(context.Context, uuid.UUID) error { return nil }
 
-func TestRequestTimeoutReturnsGatewayTimeout(t *testing.T) {
+func TestRequestTimeoutReturnsServiceUnavailable(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	r.Use(requestTimeout(10 * time.Millisecond))
@@ -50,11 +50,55 @@ func TestRequestTimeoutReturnsGatewayTimeout(t *testing.T) {
 	resp := httptest.NewRecorder()
 	r.ServeHTTP(resp, req)
 
-	if resp.Code != http.StatusGatewayTimeout {
-		t.Fatalf("expected status %d, got %d", http.StatusGatewayTimeout, resp.Code)
+	if resp.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected status %d, got %d", http.StatusServiceUnavailable, resp.Code)
 	}
 	if resp.Body.String() != `{"error":"请求处理超时"}` {
 		t.Fatalf("unexpected timeout response: %q", resp.Body.String())
+	}
+	if value := resp.Header().Get("Retry-After"); value != "" {
+		t.Fatalf("expected no Retry-After header, got %q", value)
+	}
+}
+
+func TestRequestTimeoutPreservesSuccessfulResponseAndSetsDeadline(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.Use(requestTimeout(time.Second))
+	r.GET("/fast", func(c *gin.Context) {
+		if _, ok := c.Request.Context().Deadline(); !ok {
+			t.Error("expected request context to contain a deadline")
+		}
+		c.JSON(http.StatusAccepted, gin.H{"status": "ok"})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/fast", nil)
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusAccepted || resp.Body.String() != `{"status":"ok"}` {
+		t.Fatalf("unexpected successful response: status=%d body=%q", resp.Code, resp.Body.String())
+	}
+}
+
+func TestRequestTimeoutDiscardsLateWrite(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	r.Use(requestTimeout(5 * time.Millisecond))
+	r.GET("/slow", func(c *gin.Context) {
+		time.Sleep(20 * time.Millisecond)
+		c.JSON(http.StatusOK, gin.H{"status": "late"})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/slow", nil)
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected status %d, got %d", http.StatusServiceUnavailable, resp.Code)
+	}
+	if resp.Body.String() != `{"error":"请求处理超时"}` {
+		t.Fatalf("expected only the timeout response, got %q", resp.Body.String())
 	}
 }
 

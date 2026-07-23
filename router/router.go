@@ -1,6 +1,8 @@
 package router
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -26,6 +28,7 @@ type Dependencies struct {
 	SwaggerPassword         string
 	AdminBearerToken        string
 	CORSAllowedOrigins      []string
+	BusinessRequestTimeout  time.Duration
 }
 
 func SetupRouter(deps Dependencies) *gin.Engine {
@@ -45,7 +48,7 @@ func SetupRouter(deps Dependencies) *gin.Engine {
 	r.GET("/healthz", deps.HealthHandler.Check)
 
 	v1 := r.Group("/v1")
-	v1.Use(requestTimeout(businessRequestTimeout))
+	v1.Use(requestTimeout(deps.BusinessRequestTimeout))
 
 	swaggerGroup := r.Group("/swagger", gin.BasicAuth(gin.Accounts{
 		"swagger": deps.SwaggerPassword,

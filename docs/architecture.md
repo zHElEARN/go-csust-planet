@@ -25,3 +25,9 @@
 ## 基础设施
 
 `config` 只读取环境配置。`internal/postgres` 负责数据库连接，并在应用启动时按版本顺序执行尚未应用的 Goose migration。迁移失败会阻止应用启动，由人工处理；应用不提供向下迁移入口。`main.go` 是唯一组合根，不使用全局配置或全局数据库实例。
+
+## 业务请求超时
+
+`/v1` API 从进入路由组开始共享一份业务处理时间预算，覆盖参数绑定、业务逻辑、数据库调用和响应序列化。预算由 `BUSINESS_REQUEST_TIMEOUT` 配置，默认值为 `2s`，经 `config` 和 `main.go` 注入 `router`；service 和 repository 只接收并继续传递 request context。
+
+超时采用协作式取消：middleware 在预算耗尽时返回 503、取消 request context，并丢弃后续响应写入；数据库及其他阻塞调用必须遵守 context。写请求在超时边界上可能已经提交，调用方不得将非幂等请求的 503 视为可无条件重试。该预算不替代 HTTP 服务端的请求读取、响应写入或 keep-alive 超时，本项目当前不对慢客户端传输设置额外限制。

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -53,6 +54,7 @@ func newAdminTestRouterWithCleanup(t *testing.T, useTransaction bool) (*gin.Engi
 		AppMode:                 "test",
 		SwaggerPassword:         "test-swagger-password",
 		AdminBearerToken:        testAdminToken,
+		BusinessRequestTimeout:  time.Second,
 	}), db
 }
 

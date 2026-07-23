@@ -49,6 +49,7 @@ func main() {
 		SwaggerPassword:         cfg.SwaggerPassword,
 		AdminBearerToken:        cfg.AdminBearerToken,
 		CORSAllowedOrigins:      cfg.CORSAllowedOrigins,
+		BusinessRequestTimeout:  cfg.BusinessRequestTimeout,
 	})
 
 	if err := r.Run(":" + cfg.Port); err != nil {

@@ -1,20 +1,20 @@
 package router
 
 import (
-	"context"
+	"net/http"
 	"time"
 
+	timeout "github.com/gin-contrib/timeout"
 	"github.com/gin-gonic/gin"
+
+	"github.com/zHElEARN/go-csust-planet/utils/response"
 )
 
-const businessRequestTimeout = 2 * time.Second
-
-func requestTimeout(timeout time.Duration) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx, cancel := context.WithTimeout(c.Request.Context(), timeout)
-		defer cancel()
-
-		c.Request = c.Request.WithContext(ctx)
-		c.Next()
-	}
+func requestTimeout(duration time.Duration) gin.HandlerFunc {
+	return timeout.New(
+		timeout.WithTimeout(duration),
+		timeout.WithResponse(func(c *gin.Context) {
+			response.ResponseError(c, http.StatusServiceUnavailable, "请求处理超时")
+		}),
+	)
 }
