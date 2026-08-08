@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 
-	import type { AnnouncementFormState } from '$lib/announcement-form';
+	import { announcementPlatformOptions, type AnnouncementFormState } from '$lib/announcement-form';
 
 	let {
 		form = $bindable<AnnouncementFormState>(),
@@ -37,6 +37,25 @@
 			{disabled}
 		/>
 	</div>
+
+	<fieldset class="space-y-2">
+		<legend class="text-sm font-medium text-slate-700">发布平台</legend>
+		<div class="flex flex-wrap gap-x-5 gap-y-2">
+			{#each announcementPlatformOptions as option (option.value)}
+				<label class="inline-flex items-center gap-2 text-sm text-slate-700">
+					<input
+						type="radio"
+						name="announcement-platform"
+						value={option.value}
+						bind:group={form.platform}
+						class="border-slate-300 text-slate-900 focus:ring-slate-500"
+						{disabled}
+					/>
+					<span>{option.label}</span>
+				</label>
+			{/each}
+		</div>
+	</fieldset>
 
 	<div class="space-y-2">
 		<label class="block text-sm font-medium text-slate-700" for="announcement-content">内容</label>

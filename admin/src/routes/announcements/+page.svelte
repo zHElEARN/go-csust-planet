@@ -8,7 +8,8 @@
 		AdminUnauthorizedError,
 		deleteAnnouncement,
 		listAnnouncements,
-		type AdminAnnouncement
+		type AdminAnnouncement,
+		type AnnouncementPlatform
 	} from '$lib/admin-api';
 
 	const newPath = resolve('/announcements/new');
@@ -21,6 +22,28 @@
 
 	function handleEdit(id: string) {
 		void goto(resolve(`/announcements/edit?id=${encodeURIComponent(id)}`));
+	}
+
+	function formatPlatform(platform: AnnouncementPlatform): string {
+		switch (platform) {
+			case 'ios':
+				return '仅 iOS';
+			case 'android':
+				return '仅安卓';
+			case 'all':
+				return '全部平台';
+		}
+	}
+
+	function platformBadgeClass(platform: AnnouncementPlatform): string {
+		switch (platform) {
+			case 'ios':
+				return 'bg-slate-100 text-slate-700';
+			case 'android':
+				return 'bg-emerald-100 text-emerald-700';
+			case 'all':
+				return 'bg-blue-100 text-blue-700';
+		}
 	}
 
 	let announcements = $state<AdminAnnouncement[]>([]);
@@ -93,6 +116,7 @@
 				<thead class="bg-slate-50 text-left text-slate-500">
 					<tr>
 						<th class="px-4 py-3 font-medium">标题</th>
+						<th class="px-4 py-3 font-medium">发布平台</th>
 						<th class="px-4 py-3 font-medium">生效</th>
 						<th class="px-4 py-3 font-medium">Banner</th>
 						<th class="px-4 py-3 font-medium">创建时间</th>
@@ -102,16 +126,23 @@
 				<tbody class="divide-y divide-slate-200">
 					{#if loading}
 						<tr>
-							<td colspan="5" class="px-4 py-6 text-center text-slate-500">加载中</td>
+							<td colspan="6" class="px-4 py-6 text-center text-slate-500">加载中</td>
 						</tr>
 					{:else if announcements.length === 0}
 						<tr>
-							<td colspan="5" class="px-4 py-6 text-center text-slate-500">暂无数据</td>
+							<td colspan="6" class="px-4 py-6 text-center text-slate-500">暂无数据</td>
 						</tr>
 					{:else}
 						{#each announcements as item (item.id)}
 							<tr>
 								<td class="px-4 py-3 text-slate-900">{item.title}</td>
+								<td class="px-4 py-3">
+									<span
+										class={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${platformBadgeClass(item.platform)}`}
+									>
+										{formatPlatform(item.platform)}
+									</span>
+								</td>
 								<td class="px-4 py-3 text-slate-600">{item.isActive ? '是' : '否'}</td>
 								<td class="px-4 py-3 text-slate-600">{item.isBanner ? '是' : '否'}</td>
 								<td class="px-4 py-3 text-slate-600">{formatTime(item.createdAt)}</td>

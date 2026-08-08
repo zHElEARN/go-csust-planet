@@ -1,9 +1,12 @@
 import { clearStoredAdminToken, getStoredAdminToken } from '$lib/admin-auth';
 
+export type AnnouncementPlatform = 'ios' | 'android' | 'all';
+
 export type AdminAnnouncement = {
 	id: string;
 	title: string;
 	content: string;
+	platform: AnnouncementPlatform;
 	isActive: boolean;
 	isBanner: boolean;
 	createdAt: string;
@@ -12,6 +15,7 @@ export type AdminAnnouncement = {
 export type AdminAnnouncementUpsertRequest = {
 	title: string;
 	content: string;
+	platform: AnnouncementPlatform;
 	isActive: boolean;
 	isBanner: boolean;
 };
