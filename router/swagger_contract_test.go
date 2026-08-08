@@ -18,7 +18,16 @@ type swaggerDocument struct {
 
 type swaggerOperation struct {
 	Description string                     `json:"description"`
+	Parameters  []swaggerParameter         `json:"parameters"`
 	Responses   map[string]swaggerResponse `json:"responses"`
+}
+
+type swaggerParameter struct {
+	Name     string   `json:"name"`
+	In       string   `json:"in"`
+	Required bool     `json:"required"`
+	Enum     []string `json:"enum"`
+	Default  string   `json:"default"`
 }
 
 type swaggerResponse struct {
@@ -29,6 +38,7 @@ type swaggerResponse struct {
 
 type swaggerDefinition struct {
 	Properties map[string]json.RawMessage `json:"properties"`
+	Required   []string                   `json:"required"`
 }
 
 func TestSwaggerPreservesExistingHTTPContract(t *testing.T) {
@@ -48,7 +58,7 @@ func TestSwaggerPreservesExistingHTTPContract(t *testing.T) {
 		"GET /admin/semester-calendars/{semester_code}":    {"200", "401", "404", "500", "503"},
 		"PUT /admin/semester-calendars/{semester_code}":    {"200", "400", "401", "404", "409", "500", "503"},
 		"DELETE /admin/semester-calendars/{semester_code}": {"204", "401", "404", "500", "503"},
-		"GET /config/announcements":                        {"200", "500", "503"},
+		"GET /config/announcements":                        {"200", "400", "500", "503"},
 		"GET /config/app-versions":                         {"200", "400", "500", "503"},
 		"GET /config/app-versions/check":                   {"200", "400", "500", "503"},
 		"GET /config/campus-map":                           {"200", "500", "503"},
@@ -67,6 +77,28 @@ func TestSwaggerPreservesExistingHTTPContract(t *testing.T) {
 	}
 	if _, ok := errorDefinition.Properties["error"]; !ok {
 		t.Fatal("expected response.ErrorResponse to contain the error property")
+	}
+
+	adminAnnouncement := document.Definitions["announcement.adminAnnouncementResponse"]
+	if _, ok := adminAnnouncement.Properties["platform"]; !ok {
+		t.Fatal("expected admin announcement response to contain platform")
+	}
+	publicAnnouncement := document.Definitions["announcement.announcementResponse"]
+	if _, ok := publicAnnouncement.Properties["platform"]; ok {
+		t.Fatal("expected public announcement response to omit platform")
+	}
+	upsertAnnouncement := document.Definitions["announcement.upsertRequest"]
+	if _, ok := upsertAnnouncement.Properties["platform"]; !ok || !slices.Contains(upsertAnnouncement.Required, "platform") {
+		t.Fatal("expected announcement upsert request to require platform")
+	}
+
+	publicOperation := document.Paths["/config/announcements"]["get"]
+	if len(publicOperation.Parameters) != 1 {
+		t.Fatalf("expected one public announcement parameter, got %+v", publicOperation.Parameters)
+	}
+	platformParameter := publicOperation.Parameters[0]
+	if platformParameter.Name != "platform" || platformParameter.In != "query" || platformParameter.Required || platformParameter.Default != "ios" || !slices.Equal(platformParameter.Enum, []string{"ios", "android"}) {
+		t.Fatalf("unexpected public announcement platform parameter: %+v", platformParameter)
 	}
 
 	for operationKey, expectedStatuses := range expected {

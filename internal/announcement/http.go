@@ -26,6 +26,7 @@ type adminAnnouncementResponse struct {
 	ID        string    `json:"id"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
+	Platform  string    `json:"platform"`
 	IsActive  bool      `json:"isActive"`
 	IsBanner  bool      `json:"isBanner"`
 	CreatedAt time.Time `json:"createdAt"`
@@ -34,6 +35,7 @@ type adminAnnouncementResponse struct {
 type upsertRequest struct {
 	Title    string `json:"title" binding:"required"`
 	Content  string `json:"content" binding:"required"`
+	Platform string `json:"platform" binding:"required,oneof=ios android all"`
 	IsActive *bool  `json:"isActive" binding:"required"`
 	IsBanner *bool  `json:"isBanner" binding:"required"`
 }
@@ -45,12 +47,18 @@ func NewHandler(service *Service) *Handler { return &Handler{service: service} }
 // @Description 获取当前生效的公告列表，按创建时间倒序排列
 // @Tags config
 // @Produce json
+// @Param platform query string false "平台(ios或android)，不传时按ios处理" Enums(ios, android) default(ios)
 // @Success 200 {array} announcementResponse
+// @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
 // @Router /config/announcements [get]
 func (h *Handler) GetAnnouncements(c *gin.Context) {
-	entities, err := h.service.ListActive(c.Request.Context())
+	platform, ok := bindPublicPlatform(c)
+	if !ok {
+		return
+	}
+	entities, err := h.service.ListActive(c.Request.Context(), platform)
 	if err != nil {
 		if response.HandleContextError(c, err) {
 			return
@@ -247,12 +255,24 @@ func bindUpsert(c *gin.Context) (Upsert, bool) {
 		response.ResponseError(c, http.StatusBadRequest, "无效的请求参数")
 		return Upsert{}, false
 	}
-	return Upsert{Title: request.Title, Content: request.Content, IsActive: *request.IsActive, IsBanner: *request.IsBanner}, true
+	return Upsert{Title: request.Title, Content: request.Content, Platform: request.Platform, IsActive: *request.IsActive, IsBanner: *request.IsBanner}, true
+}
+
+func bindPublicPlatform(c *gin.Context) (string, bool) {
+	values, exists := c.Request.URL.Query()["platform"]
+	if !exists {
+		return PlatformIOS, true
+	}
+	if len(values) != 1 || (values[0] != PlatformIOS && values[0] != PlatformAndroid) {
+		response.ResponseError(c, http.StatusBadRequest, "无效的请求参数")
+		return "", false
+	}
+	return values[0], true
 }
 
 func toPublicResponse(entity Entity) announcementResponse {
 	return announcementResponse{ID: entity.ID.String(), Title: entity.Title, Content: entity.Content, IsBanner: entity.IsBanner, CreatedAt: entity.CreatedAt}
 }
 func toAdminResponse(entity Entity) adminAnnouncementResponse {
-	return adminAnnouncementResponse{ID: entity.ID.String(), Title: entity.Title, Content: entity.Content, IsActive: entity.IsActive, IsBanner: entity.IsBanner, CreatedAt: entity.CreatedAt}
+	return adminAnnouncementResponse{ID: entity.ID.String(), Title: entity.Title, Content: entity.Content, Platform: entity.Platform, IsActive: entity.IsActive, IsBanner: entity.IsBanner, CreatedAt: entity.CreatedAt}
 }

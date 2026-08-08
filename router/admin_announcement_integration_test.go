@@ -17,13 +17,26 @@ func TestAdminAnnouncementCRUD(t *testing.T) {
 	assertStatus(t, resp, http.StatusNotFound)
 
 	resp = performRequest(t, r, http.MethodPost, "/v1/admin/announcements", map[string]any{
-		"title": "missing fields",
+		"title":    "缺少平台",
+		"content":  "内容",
+		"isActive": true,
+		"isBanner": false,
+	}, testAdminToken)
+	assertStatus(t, resp, http.StatusBadRequest)
+
+	resp = performRequest(t, r, http.MethodPost, "/v1/admin/announcements", map[string]any{
+		"title":    "非法平台",
+		"content":  "内容",
+		"platform": "windows",
+		"isActive": true,
+		"isBanner": false,
 	}, testAdminToken)
 	assertStatus(t, resp, http.StatusBadRequest)
 
 	resp = performRequest(t, r, http.MethodPost, "/v1/admin/announcements", map[string]any{
 		"title":    "公告 A",
 		"content":  "内容 A",
+		"platform": "ios",
 		"isActive": false,
 		"isBanner": false,
 	}, testAdminToken)
@@ -31,8 +44,8 @@ func TestAdminAnnouncementCRUD(t *testing.T) {
 
 	var first AdminAnnouncementResponse
 	decodeJSONResponse(t, resp, &first)
-	if first.IsActive {
-		t.Fatalf("expected first announcement to be inactive")
+	if first.IsActive || first.Platform != "ios" {
+		t.Fatalf("expected first announcement to be inactive and ios-only: %+v", first)
 	}
 
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/announcements", nil, "")
@@ -47,6 +60,7 @@ func TestAdminAnnouncementCRUD(t *testing.T) {
 	resp = performRequest(t, r, http.MethodPost, "/v1/admin/announcements", map[string]any{
 		"title":    "公告 B",
 		"content":  "内容 B",
+		"platform": "android",
 		"isActive": true,
 		"isBanner": true,
 	}, testAdminToken)
@@ -66,19 +80,31 @@ func TestAdminAnnouncementCRUD(t *testing.T) {
 	if adminList[0].ID != second.ID {
 		t.Fatalf("expected latest announcement first, got %s", adminList[0].ID)
 	}
+	if adminList[0].Platform != "android" {
+		t.Fatalf("expected admin list to include platform, got %+v", adminList[0])
+	}
 
 	resp = performRequest(t, r, http.MethodGet, "/v1/admin/announcements/"+first.ID, nil, testAdminToken)
 	assertStatus(t, resp, http.StatusOK)
 
 	var detail AdminAnnouncementResponse
 	decodeJSONResponse(t, resp, &detail)
-	if detail.Content != "内容 A" {
-		t.Fatalf("expected announcement content to match, got %q", detail.Content)
+	if detail.Content != "内容 A" || detail.Platform != "ios" {
+		t.Fatalf("expected announcement detail to include content and platform, got %+v", detail)
 	}
+
+	resp = performRequest(t, r, http.MethodPut, "/v1/admin/announcements/"+first.ID, map[string]any{
+		"title":    "公告 A 不应更新",
+		"content":  "缺少平台",
+		"isActive": true,
+		"isBanner": true,
+	}, testAdminToken)
+	assertStatus(t, resp, http.StatusBadRequest)
 
 	resp = performRequest(t, r, http.MethodPut, "/v1/admin/announcements/"+first.ID, map[string]any{
 		"title":    "公告 A 已更新",
 		"content":  "内容 A 已更新",
+		"platform": "all",
 		"isActive": true,
 		"isBanner": true,
 	}, testAdminToken)
@@ -86,15 +112,15 @@ func TestAdminAnnouncementCRUD(t *testing.T) {
 
 	var updated AdminAnnouncementResponse
 	decodeJSONResponse(t, resp, &updated)
-	if !updated.IsActive || !updated.IsBanner {
+	if !updated.IsActive || !updated.IsBanner || updated.Platform != "all" {
 		t.Fatalf("expected updated announcement to be active banner")
 	}
 
 	resp = performRequest(t, r, http.MethodGet, "/v1/config/announcements", nil, "")
 	assertStatus(t, resp, http.StatusOK)
 	decodeJSONResponse(t, resp, &publicList)
-	if len(publicList) != 2 {
-		t.Fatalf("expected 2 active announcements in public list, got %d", len(publicList))
+	if len(publicList) != 1 || publicList[0].ID != first.ID {
+		t.Fatalf("expected only the all-platform announcement in the legacy ios list, got %+v", publicList)
 	}
 
 	resp = performRequest(t, r, http.MethodDelete, "/v1/admin/announcements/"+first.ID, nil, testAdminToken)

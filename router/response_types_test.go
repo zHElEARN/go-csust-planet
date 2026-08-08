@@ -20,6 +20,7 @@ type AdminAnnouncementResponse struct {
 	ID        string    `json:"id"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
+	Platform  string    `json:"platform"`
 	IsActive  bool      `json:"isActive"`
 	IsBanner  bool      `json:"isBanner"`
 	CreatedAt time.Time `json:"createdAt"`

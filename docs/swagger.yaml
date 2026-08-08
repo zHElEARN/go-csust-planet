@@ -12,6 +12,8 @@ definitions:
         type: boolean
       isBanner:
         type: boolean
+      platform:
+        type: string
       title:
         type: string
     type: object
@@ -36,12 +38,19 @@ definitions:
         type: boolean
       isBanner:
         type: boolean
+      platform:
+        enum:
+        - ios
+        - android
+        - all
+        type: string
       title:
         type: string
     required:
     - content
     - isActive
     - isBanner
+    - platform
     - title
     type: object
   appversion.adminResponse:
@@ -923,6 +932,15 @@ paths:
   /config/announcements:
     get:
       description: 获取当前生效的公告列表，按创建时间倒序排列
+      parameters:
+      - default: ios
+        description: 平台(ios或android)，不传时按ios处理
+        enum:
+        - ios
+        - android
+        in: query
+        name: platform
+        type: string
       produces:
       - application/json
       responses:
@@ -932,6 +950,10 @@ paths:
             items:
               $ref: '#/definitions/announcement.announcementResponse'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:

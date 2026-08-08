@@ -26,12 +26,13 @@ func TestConfigAnnouncementsReturnsEmptyList(t *testing.T) {
 	}
 }
 
-func TestConfigAnnouncementsFiltersAndOrdersActiveAnnouncements(t *testing.T) {
+func TestConfigAnnouncementsFiltersByPlatformAndOrdersActiveAnnouncements(t *testing.T) {
 	r := newAdminTestRouter(t)
 
-	older := createTestAnnouncement(t, announcement.Entity{
+	iosOnly := createTestAnnouncement(t, announcement.Entity{
 		Title:     "较早公告",
 		Content:   "较早内容",
+		Platform:  announcement.PlatformIOS,
 		IsActive:  true,
 		IsBanner:  false,
 		CreatedAt: time.Date(2026, time.January, 2, 10, 0, 0, 0, time.UTC),
@@ -39,16 +40,26 @@ func TestConfigAnnouncementsFiltersAndOrdersActiveAnnouncements(t *testing.T) {
 	createTestAnnouncement(t, announcement.Entity{
 		Title:     "隐藏公告",
 		Content:   "不应返回",
+		Platform:  announcement.PlatformAll,
 		IsActive:  false,
 		IsBanner:  true,
 		CreatedAt: time.Date(2026, time.January, 3, 10, 0, 0, 0, time.UTC),
 	})
-	newer := createTestAnnouncement(t, announcement.Entity{
-		Title:     "最新公告",
-		Content:   "最新内容",
+	shared := createTestAnnouncement(t, announcement.Entity{
+		Title:     "全平台公告",
+		Content:   "全平台内容",
+		Platform:  announcement.PlatformAll,
 		IsActive:  true,
 		IsBanner:  true,
 		CreatedAt: time.Date(2026, time.January, 4, 10, 0, 0, 0, time.UTC),
+	})
+	androidOnly := createTestAnnouncement(t, announcement.Entity{
+		Title:     "安卓公告",
+		Content:   "安卓内容",
+		Platform:  announcement.PlatformAndroid,
+		IsActive:  true,
+		IsBanner:  false,
+		CreatedAt: time.Date(2026, time.January, 5, 10, 0, 0, 0, time.UTC),
 	})
 
 	resp := performRequest(t, r, http.MethodGet, "/v1/config/announcements", nil, "")
@@ -59,10 +70,10 @@ func TestConfigAnnouncementsFiltersAndOrdersActiveAnnouncements(t *testing.T) {
 	if len(announcements) != 2 {
 		t.Fatalf("expected 2 active announcements, got %d", len(announcements))
 	}
-	if announcements[0].ID != newer.ID.String() || announcements[1].ID != older.ID.String() {
+	if announcements[0].ID != shared.ID.String() || announcements[1].ID != iosOnly.ID.String() {
 		t.Fatalf("unexpected announcements order: %+v", announcements)
 	}
-	if announcements[0].Title != newer.Title || announcements[0].Content != newer.Content {
+	if announcements[0].Title != shared.Title || announcements[0].Content != shared.Content {
 		t.Fatalf("unexpected latest announcement payload: %+v", announcements[0])
 	}
 	if !announcements[0].IsBanner || announcements[1].IsBanner {
@@ -73,6 +84,45 @@ func TestConfigAnnouncementsFiltersAndOrdersActiveAnnouncements(t *testing.T) {
 	decodeJSONResponse(t, resp, &rawAnnouncements)
 	if _, exists := rawAnnouncements[0]["isActive"]; exists {
 		t.Fatalf("expected public announcement payload to omit isActive field")
+	}
+	if _, exists := rawAnnouncements[0]["platform"]; exists {
+		t.Fatalf("expected public announcement payload to omit platform field")
+	}
+
+	resp = performRequest(t, r, http.MethodGet, "/v1/config/announcements?platform=ios", nil, "")
+	assertStatus(t, resp, http.StatusOK)
+	decodeJSONResponse(t, resp, &announcements)
+	if len(announcements) != 2 || announcements[0].ID != shared.ID.String() || announcements[1].ID != iosOnly.ID.String() {
+		t.Fatalf("unexpected explicit ios announcements: %+v", announcements)
+	}
+
+	resp = performRequest(t, r, http.MethodGet, "/v1/config/announcements?platform=android", nil, "")
+	assertStatus(t, resp, http.StatusOK)
+	decodeJSONResponse(t, resp, &announcements)
+	if len(announcements) != 2 || announcements[0].ID != androidOnly.ID.String() || announcements[1].ID != shared.ID.String() {
+		t.Fatalf("unexpected android announcements: %+v", announcements)
+	}
+}
+
+func TestConfigAnnouncementsRejectsInvalidPlatform(t *testing.T) {
+	r := newAdminTestRouter(t)
+
+	paths := []string{
+		"/v1/config/announcements?platform=",
+		"/v1/config/announcements?platform=all",
+		"/v1/config/announcements?platform=windows",
+		"/v1/config/announcements?platform=IOS",
+		"/v1/config/announcements?platform=%20ios",
+		"/v1/config/announcements?platform=ios&platform=android",
+	}
+	for _, path := range paths {
+		resp := performRequest(t, r, http.MethodGet, path, nil, "")
+		assertStatus(t, resp, http.StatusBadRequest)
+		var body map[string]string
+		decodeJSONResponse(t, resp, &body)
+		if body["error"] != "无效的请求参数" {
+			t.Fatalf("unexpected invalid platform error for %q: %+v", path, body)
+		}
 	}
 }
 
@@ -403,6 +453,7 @@ func createTestAnnouncement(t *testing.T, entity announcement.Entity) announceme
 		"id":        entity.ID,
 		"title":     entity.Title,
 		"content":   entity.Content,
+		"platform":  entity.Platform,
 		"is_active": entity.IsActive,
 		"is_banner": entity.IsBanner,
 	}

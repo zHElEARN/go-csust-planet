@@ -18,9 +18,12 @@ func (r *PostgresRepository) List(ctx context.Context) ([]Entity, error) {
 	return entities, r.db.WithContext(ctx).Order("created_at desc").Find(&entities).Error
 }
 
-func (r *PostgresRepository) ListActive(ctx context.Context) ([]Entity, error) {
+func (r *PostgresRepository) ListActive(ctx context.Context, platform string) ([]Entity, error) {
 	var entities []Entity
-	return entities, r.db.WithContext(ctx).Where("is_active = ?", true).Order("created_at desc").Find(&entities).Error
+	return entities, r.db.WithContext(ctx).
+		Where("is_active = ? AND platform IN ?", true, []string{platform, PlatformAll}).
+		Order("created_at desc").
+		Find(&entities).Error
 }
 
 func (r *PostgresRepository) Get(ctx context.Context, id uuid.UUID) (Entity, error) {
@@ -39,6 +42,7 @@ func (r *PostgresRepository) Create(ctx context.Context, entity Entity) (Entity,
 		"id":         entity.ID,
 		"title":      entity.Title,
 		"content":    entity.Content,
+		"platform":   entity.Platform,
 		"is_active":  entity.IsActive,
 		"is_banner":  entity.IsBanner,
 		"created_at": entity.CreatedAt,
@@ -51,7 +55,7 @@ func (r *PostgresRepository) Update(ctx context.Context, id uuid.UUID, values En
 		Model(&entity).
 		Clauses(clause.Returning{}).
 		Where("id = ?", id).
-		Select("title", "content", "is_active", "is_banner").
+		Select("title", "content", "platform", "is_active", "is_banner").
 		Updates(values)
 	if result.Error != nil {
 		return Entity{}, result.Error

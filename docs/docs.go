@@ -985,6 +985,19 @@ const docTemplate = `{
                     "config"
                 ],
                 "summary": "获取公告列表",
+                "parameters": [
+                    {
+                        "enum": [
+                            "ios",
+                            "android"
+                        ],
+                        "type": "string",
+                        "default": "ios",
+                        "description": "平台(ios或android)，不传时按ios处理",
+                        "name": "platform",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -993,6 +1006,12 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/announcement.announcementResponse"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
@@ -1256,6 +1275,9 @@ const docTemplate = `{
                 "isBanner": {
                     "type": "boolean"
                 },
+                "platform": {
+                    "type": "string"
+                },
                 "title": {
                     "type": "string"
                 }
@@ -1287,6 +1309,7 @@ const docTemplate = `{
                 "content",
                 "isActive",
                 "isBanner",
+                "platform",
                 "title"
             ],
             "properties": {
@@ -1298,6 +1321,14 @@ const docTemplate = `{
                 },
                 "isBanner": {
                     "type": "boolean"
+                },
+                "platform": {
+                    "type": "string",
+                    "enum": [
+                        "ios",
+                        "android",
+                        "all"
+                    ]
                 },
                 "title": {
                     "type": "string"

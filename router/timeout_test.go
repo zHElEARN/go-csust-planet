@@ -22,7 +22,7 @@ type canceledAnnouncementRepository struct {
 func (r *canceledAnnouncementRepository) List(context.Context) ([]announcement.Entity, error) {
 	return nil, nil
 }
-func (r *canceledAnnouncementRepository) ListActive(ctx context.Context) ([]announcement.Entity, error) {
+func (r *canceledAnnouncementRepository) ListActive(ctx context.Context, _ string) ([]announcement.Entity, error) {
 	r.ctx = ctx
 	return nil, ctx.Err()
 }
