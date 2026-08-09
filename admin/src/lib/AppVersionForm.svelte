@@ -2,12 +2,13 @@
 	import { resolve } from '$app/paths';
 
 	import type { AppVersionFormState } from '$lib/app-version-form';
+	import type { AppVersionListPath } from '$lib/app-version-scope';
 
 	let {
 		form = $bindable<AppVersionFormState>(),
 		disabled = false,
 		formError = '',
-		cancelRoute,
+		cancelPath,
 		submitLabel,
 		cancelLabel,
 		deleteLabel = '删除',
@@ -17,7 +18,7 @@
 		form: AppVersionFormState;
 		disabled?: boolean;
 		formError?: string;
-		cancelRoute: '/app-versions';
+		cancelPath: AppVersionListPath;
 		submitLabel: string;
 		cancelLabel: string;
 		deleteLabel?: string;
@@ -119,7 +120,7 @@
 		</button>
 
 		<a
-			href={resolve(cancelRoute)}
+			href={resolve(cancelPath)}
 			class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
 		>
 			{cancelLabel}

@@ -6,6 +6,7 @@
 	import { onMount } from 'svelte';
 
 	import AppVersionForm from '$lib/AppVersionForm.svelte';
+	import AppVersionScopeNotice from '$lib/AppVersionScopeNotice.svelte';
 	import {
 		buildAppVersionPayload,
 		createEmptyAppVersionForm,
@@ -17,9 +18,15 @@
 		getAppVersion,
 		updateAppVersion
 	} from '$lib/admin-api';
+	import {
+		appVersionListPath,
+		getAppVersionScopeDetails,
+		parseAppVersionScope
+	} from '$lib/app-version-scope';
 
-	const listRoute = '/app-versions' as const;
-	const listPath = resolve('/app-versions');
+	const scope = $derived(parseAppVersionScope(page.url.searchParams.get('scope')));
+	const scopeDetails = $derived(getAppVersionScopeDetails(scope));
+	const listPath = $derived(appVersionListPath(scope));
 	const versionId = $derived(page.url.searchParams.get('id')?.trim() ?? '');
 
 	let form = $state(createEmptyAppVersionForm());
@@ -42,7 +49,7 @@
 		loadError = '';
 
 		try {
-			const item = await getAppVersion(versionId);
+			const item = await getAppVersion(scope, versionId);
 			form = fromAdminAppVersion(item);
 		} catch (error) {
 			if (error instanceof AdminUnauthorizedError) {
@@ -73,7 +80,7 @@
 			return;
 		}
 
-		if (browser && !window.confirm('确认保存修改？')) {
+		if (browser && !window.confirm(`确认保存修改到${scopeDetails.label}？`)) {
 			return;
 		}
 
@@ -81,8 +88,8 @@
 		formError = '';
 
 		try {
-			await updateAppVersion(versionId, result.payload);
-			void goto(listPath);
+			await updateAppVersion(scope, versionId, result.payload);
+			void goto(resolve(listPath));
 		} catch (error) {
 			if (error instanceof AdminUnauthorizedError) {
 				return;
@@ -100,7 +107,7 @@
 			return;
 		}
 
-		if (browser && !window.confirm('确认删除？')) {
+		if (browser && !window.confirm(`确认从${scopeDetails.label}删除该版本？`)) {
 			return;
 		}
 
@@ -108,8 +115,8 @@
 		formError = '';
 
 		try {
-			await deleteAppVersion(versionId);
-			void goto(listPath);
+			await deleteAppVersion(scope, versionId);
+			void goto(resolve(listPath));
 		} catch (error) {
 			if (error instanceof AdminUnauthorizedError) {
 				return;
@@ -127,14 +134,19 @@
 </script>
 
 <svelte:head>
-	<title>编辑版本</title>
+	<title>编辑{scope === 'legacy' ? '旧版迁移' : '新版发布'}版本</title>
 </svelte:head>
 
 <div class="admin-page">
 	<div class="admin-page-header">
-		<h1 class="admin-page-title">编辑版本</h1>
-		<a href={listPath} class="text-sm text-slate-600 hover:text-slate-900">返回</a>
+		<div>
+			<h1 class="admin-page-title">编辑{scope === 'legacy' ? '旧版迁移' : '新版发布'}版本</h1>
+			<p class="mt-1 text-sm text-slate-500">目标：{scopeDetails.label}</p>
+		</div>
+		<a href={resolve(listPath)} class="text-sm text-slate-600 hover:text-slate-900">返回</a>
 	</div>
+
+	<AppVersionScopeNotice {scope} />
 
 	<section class="admin-card">
 		{#if loading}
@@ -143,7 +155,7 @@
 			<div class="space-y-4">
 				<p class="text-sm text-slate-500">未找到该版本</p>
 				<a
-					href={listPath}
+					href={resolve(listPath)}
 					class="inline-flex rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
 				>
 					返回列表
@@ -155,7 +167,7 @@
 					{loadError}
 				</p>
 				<a
-					href={listPath}
+					href={resolve(listPath)}
 					class="inline-flex rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
 				>
 					返回列表
@@ -166,7 +178,7 @@
 				bind:form
 				disabled={saving || deleting}
 				{formError}
-				cancelRoute={listRoute}
+				cancelPath={listPath}
 				submitLabel={saving ? '保存中' : '保存'}
 				cancelLabel="取消"
 				deleteLabel={deleting ? '删除中' : '删除'}

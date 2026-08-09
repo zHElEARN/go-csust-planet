@@ -1,4 +1,5 @@
 import { clearStoredAdminToken, getStoredAdminToken } from '$lib/admin-auth';
+import type { AppVersionScope } from '$lib/app-version-scope';
 
 export type AnnouncementPlatform = 'ios' | 'android' | 'all';
 
@@ -168,33 +169,41 @@ export function deleteAnnouncement(id: string): Promise<void> {
 	});
 }
 
-export function listAppVersions(): Promise<AdminAppVersion[]> {
-	return adminRequest<AdminAppVersion[]>('/v1/admin/app-versions');
+function appVersionAdminPath(scope: AppVersionScope): string {
+	return scope === 'legacy' ? '/v1/admin/app-versions' : '/v2/admin/app-versions';
 }
 
-export function getAppVersion(id: string): Promise<AdminAppVersion> {
-	return adminRequest<AdminAppVersion>(`/v1/admin/app-versions/${id}`);
+export function listAppVersions(scope: AppVersionScope): Promise<AdminAppVersion[]> {
+	return adminRequest<AdminAppVersion[]>(appVersionAdminPath(scope));
 }
 
-export function createAppVersion(payload: AdminAppVersionUpsertRequest): Promise<AdminAppVersion> {
-	return adminRequest<AdminAppVersion>('/v1/admin/app-versions', {
+export function getAppVersion(scope: AppVersionScope, id: string): Promise<AdminAppVersion> {
+	return adminRequest<AdminAppVersion>(`${appVersionAdminPath(scope)}/${id}`);
+}
+
+export function createAppVersion(
+	scope: AppVersionScope,
+	payload: AdminAppVersionUpsertRequest
+): Promise<AdminAppVersion> {
+	return adminRequest<AdminAppVersion>(appVersionAdminPath(scope), {
 		method: 'POST',
 		body: JSON.stringify(payload)
 	});
 }
 
 export function updateAppVersion(
+	scope: AppVersionScope,
 	id: string,
 	payload: AdminAppVersionUpsertRequest
 ): Promise<AdminAppVersion> {
-	return adminRequest<AdminAppVersion>(`/v1/admin/app-versions/${id}`, {
+	return adminRequest<AdminAppVersion>(`${appVersionAdminPath(scope)}/${id}`, {
 		method: 'PUT',
 		body: JSON.stringify(payload)
 	});
 }
 
-export function deleteAppVersion(id: string): Promise<void> {
-	return adminRequest<void>(`/v1/admin/app-versions/${id}`, {
+export function deleteAppVersion(scope: AppVersionScope, id: string): Promise<void> {
+	return adminRequest<void>(`${appVersionAdminPath(scope)}/${id}`, {
 		method: 'DELETE'
 	});
 }

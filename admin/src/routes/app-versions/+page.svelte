@@ -1,17 +1,28 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 
+	import AppVersionScopeNotice from '$lib/AppVersionScopeNotice.svelte';
 	import {
 		AdminUnauthorizedError,
 		deleteAppVersion,
 		listAppVersions,
 		type AdminAppVersion
 	} from '$lib/admin-api';
+	import {
+		appVersionEditPath,
+		appVersionListPath,
+		appVersionNewPath,
+		getAppVersionScopeDetails,
+		parseAppVersionScope,
+		type AppVersionScope
+	} from '$lib/app-version-scope';
 
-	const newPath = resolve('/app-versions/new');
+	const currentPath = appVersionListPath('current');
+	const legacyPath = appVersionListPath('legacy');
+	const scope = $derived(parseAppVersionScope(page.url.searchParams.get('scope')));
+	const newPath = $derived(appVersionNewPath(scope));
 
 	function formatTime(value: string): string {
 		return new Date(value).toLocaleString('zh-CN', {
@@ -19,34 +30,41 @@
 		});
 	}
 
-	function handleEdit(id: string) {
-		void goto(resolve(`/app-versions/edit?id=${encodeURIComponent(id)}`));
-	}
-
 	let versions = $state<AdminAppVersion[]>([]);
 	let loading = $state(true);
 	let deletingId = $state('');
 	let loadError = $state('');
+	let loadRequestID = 0;
 
-	async function loadVersions() {
+	async function loadVersions(targetScope: AppVersionScope) {
+		const requestID = ++loadRequestID;
 		loading = true;
 		loadError = '';
 
 		try {
-			versions = await listAppVersions();
+			const result = await listAppVersions(targetScope);
+			if (requestID === loadRequestID) {
+				versions = result;
+			}
 		} catch (error) {
 			if (error instanceof AdminUnauthorizedError) {
 				return;
 			}
 
-			loadError = error instanceof Error ? error.message : '加载失败';
+			if (requestID === loadRequestID) {
+				loadError = error instanceof Error ? error.message : '加载失败';
+			}
 		} finally {
-			loading = false;
+			if (requestID === loadRequestID) {
+				loading = false;
+			}
 		}
 	}
 
 	async function handleDelete(item: AdminAppVersion) {
-		if (browser && !window.confirm('确认删除？')) {
+		const targetScope = scope;
+		const targetDetails = getAppVersionScopeDetails(targetScope);
+		if (browser && !window.confirm(`确认从${targetDetails.label}删除版本 ${item.versionName}？`)) {
 			return;
 		}
 
@@ -54,8 +72,10 @@
 		loadError = '';
 
 		try {
-			await deleteAppVersion(item.id);
-			await loadVersions();
+			await deleteAppVersion(targetScope, item.id);
+			if (scope === targetScope) {
+				await loadVersions(targetScope);
+			}
 		} catch (error) {
 			if (error instanceof AdminUnauthorizedError) {
 				return;
@@ -67,25 +87,52 @@
 		}
 	}
 
-	onMount(() => {
-		void loadVersions();
+	$effect(() => {
+		void loadVersions(scope);
 	});
 </script>
 
 <svelte:head>
-	<title>版本管理</title>
+	<title>{scope === 'legacy' ? '旧版迁移' : '新版发布'} · 版本管理</title>
 </svelte:head>
 
 <div class="admin-page">
 	<div class="admin-page-header">
 		<h1 class="admin-page-title">版本管理</h1>
 		<a
-			href={newPath}
+			href={resolve(newPath)}
 			class="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
 		>
 			新建
 		</a>
 	</div>
+
+	<nav class="flex gap-2 border-b border-slate-200" aria-label="版本库">
+		<a
+			href={resolve(currentPath)}
+			aria-current={scope === 'current' ? 'page' : undefined}
+			class={`border-b-2 px-4 py-2 text-sm font-medium ${
+				scope === 'current'
+					? 'border-slate-900 text-slate-900'
+					: 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+			}`}
+		>
+			新版发布
+		</a>
+		<a
+			href={resolve(legacyPath)}
+			aria-current={scope === 'legacy' ? 'page' : undefined}
+			class={`border-b-2 px-4 py-2 text-sm font-medium ${
+				scope === 'legacy'
+					? 'border-amber-600 text-amber-800'
+					: 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+			}`}
+		>
+			旧版迁移
+		</a>
+	</nav>
+
+	<AppVersionScopeNotice {scope} />
 
 	<section class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
 		<div class="overflow-x-auto">
@@ -121,13 +168,12 @@
 								<td class="px-4 py-3 text-slate-600">{formatTime(item.createdAt)}</td>
 								<td class="px-4 py-3">
 									<div class="flex gap-3">
-										<button
-											type="button"
+										<a
+											href={resolve(appVersionEditPath(scope, item.id))}
 											class="text-sm text-slate-700 hover:text-slate-900"
-											onclick={() => handleEdit(item.id)}
 										>
 											编辑
-										</button>
+										</a>
 										<button
 											type="button"
 											class="text-sm text-red-600 hover:text-red-700 disabled:text-red-300"
