@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/admin/announcements": {
+        "/v1/admin/announcements": {
             "get": {
                 "description": "获取全部公告列表，按创建时间倒序排列",
                 "produces": [
@@ -128,7 +128,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/announcements/{id}": {
+        "/v1/admin/announcements/{id}": {
             "get": {
                 "description": "根据公告ID获取后台公告详情",
                 "produces": [
@@ -331,7 +331,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/app-versions": {
+        "/v1/admin/app-versions": {
             "get": {
                 "description": "获取全部 App 版本列表，按平台升序、版本号降序排列",
                 "produces": [
@@ -450,7 +450,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/app-versions/{id}": {
+        "/v1/admin/app-versions/{id}": {
             "get": {
                 "description": "根据版本ID获取后台 App 版本详情",
                 "produces": [
@@ -659,7 +659,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/semester-calendars": {
+        "/v1/admin/semester-calendars": {
             "get": {
                 "description": "获取全部校历列表，按学期代码倒序排列",
                 "produces": [
@@ -778,7 +778,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/semester-calendars/{semester_code}": {
+        "/v1/admin/semester-calendars/{semester_code}": {
             "get": {
                 "description": "根据学期代码获取后台校历详情",
                 "produces": [
@@ -975,7 +975,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/config/announcements": {
+        "/v1/config/announcements": {
             "get": {
                 "description": "获取当前生效的公告列表，按创建时间倒序排列",
                 "produces": [
@@ -1029,7 +1029,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/config/app-versions": {
+        "/v1/config/app-versions": {
             "get": {
                 "description": "获取指定平台的所有App版本历史",
                 "produces": [
@@ -1083,7 +1083,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/config/app-versions/check": {
+        "/v1/config/app-versions/check": {
             "get": {
                 "description": "检查指定平台的App是否有更新",
                 "produces": [
@@ -1141,7 +1141,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/config/campus-map": {
+        "/v1/config/campus-map": {
             "get": {
                 "description": "获取GeoJSON格式的校园地图数据",
                 "produces": [
@@ -1173,7 +1173,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/config/semester-calendars": {
+        "/v1/config/semester-calendars": {
             "get": {
                 "description": "获取所有校历的列表，按学期代码倒序排列",
                 "produces": [
@@ -1208,7 +1208,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/config/semester-calendars/{semester_code}": {
+        "/v1/config/semester-calendars/{semester_code}": {
             "get": {
                 "description": "根据学期代码获取该学期的详细校历信息",
                 "produces": [
@@ -1242,6 +1242,446 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/admin/app-versions": {
+            "get": {
+                "description": "获取全部 App 版本列表，按平台升序、版本号降序排列",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "获取后台 App 版本列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer admin token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/appversion.adminResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建一条新的 App 版本记录",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "创建 App 版本",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer admin token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "版本信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/appversion.upsertRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/appversion.adminResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/admin/app-versions/{id}": {
+            "get": {
+                "description": "根据版本ID获取后台 App 版本详情",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "获取后台 App 版本详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer admin token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "版本ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/appversion.adminResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "根据版本ID更新 App 版本信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "更新 App 版本",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer admin token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "版本ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "版本信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/appversion.upsertRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/appversion.adminResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "根据版本ID删除 App 版本",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "admin"
+                ],
+                "summary": "删除 App 版本",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer admin token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "版本ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/config/app-versions": {
+            "get": {
+                "description": "获取指定平台的所有App版本历史",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "获取App所有版本",
+                "parameters": [
+                    {
+                        "enum": [
+                            "ios",
+                            "android"
+                        ],
+                        "type": "string",
+                        "description": "平台(ios或android)",
+                        "name": "platform",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/appversion.publicResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v2/config/app-versions/check": {
+            "get": {
+                "description": "检查指定平台的App是否有更新",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "config"
+                ],
+                "summary": "检查App版本更新",
+                "parameters": [
+                    {
+                        "enum": [
+                            "ios",
+                            "android"
+                        ],
+                        "type": "string",
+                        "description": "平台(ios或android)",
+                        "name": "platform",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "当前版本号",
+                        "name": "currentVersionCode",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/appversion.checkResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1685,7 +2125,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
-	BasePath:         "/v1",
+	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "go-csust-planet API",
 	Description:      "go-csust-planet 项目的 API 接口文档",

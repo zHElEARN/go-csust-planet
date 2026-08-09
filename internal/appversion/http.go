@@ -66,7 +66,8 @@ func NewHandler(service *Service) *Handler { return &Handler{service: service} }
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /config/app-versions [get]
+// @Router /v1/config/app-versions [get]
+// @Router /v2/config/app-versions [get]
 func (h *Handler) GetAppVersions(c *gin.Context) {
 	var request listRequest
 	if err := c.ShouldBindQuery(&request); err != nil {
@@ -100,7 +101,8 @@ func (h *Handler) GetAppVersions(c *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /config/app-versions/check [get]
+// @Router /v1/config/app-versions/check [get]
+// @Router /v2/config/app-versions/check [get]
 func (h *Handler) CheckAppVersion(c *gin.Context) {
 	var request checkRequest
 	if err := c.ShouldBindQuery(&request); err != nil {
@@ -134,7 +136,8 @@ func (h *Handler) CheckAppVersion(c *gin.Context) {
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/app-versions [get]
+// @Router /v1/admin/app-versions [get]
+// @Router /v2/admin/app-versions [get]
 func (h *Handler) GetAdminAppVersions(c *gin.Context) {
 	entities, err := h.service.List(c.Request.Context())
 	if err != nil {
@@ -165,7 +168,8 @@ func (h *Handler) GetAdminAppVersions(c *gin.Context) {
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/app-versions/{id} [get]
+// @Router /v1/admin/app-versions/{id} [get]
+// @Router /v2/admin/app-versions/{id} [get]
 func (h *Handler) GetAdminAppVersion(c *gin.Context) {
 	id, ok := parseID(c)
 	if !ok {
@@ -192,7 +196,8 @@ func (h *Handler) GetAdminAppVersion(c *gin.Context) {
 // @Failure 409 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/app-versions [post]
+// @Router /v1/admin/app-versions [post]
+// @Router /v2/admin/app-versions [post]
 func (h *Handler) CreateAppVersion(c *gin.Context) {
 	input, ok := bindUpsert(c)
 	if !ok {
@@ -221,7 +226,8 @@ func (h *Handler) CreateAppVersion(c *gin.Context) {
 // @Failure 409 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/app-versions/{id} [put]
+// @Router /v1/admin/app-versions/{id} [put]
+// @Router /v2/admin/app-versions/{id} [put]
 func (h *Handler) UpdateAppVersion(c *gin.Context) {
 	id, ok := parseID(c)
 	if !ok {
@@ -251,7 +257,8 @@ func (h *Handler) UpdateAppVersion(c *gin.Context) {
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/app-versions/{id} [delete]
+// @Router /v1/admin/app-versions/{id} [delete]
+// @Router /v2/admin/app-versions/{id} [delete]
 func (h *Handler) DeleteAppVersion(c *gin.Context) {
 	id, ok := parseID(c)
 	if !ok {

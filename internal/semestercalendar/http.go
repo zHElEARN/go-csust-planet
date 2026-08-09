@@ -63,7 +63,7 @@ func NewHandler(service *Service) *Handler { return &Handler{service: service} }
 // @Success 200 {array} listResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /config/semester-calendars [get]
+// @Router /v1/config/semester-calendars [get]
 func (h *Handler) GetSemesterCalendars(c *gin.Context) {
 	entities, err := h.service.ListSummaries(c.Request.Context())
 	if err != nil {
@@ -91,7 +91,7 @@ func (h *Handler) GetSemesterCalendars(c *gin.Context) {
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /config/semester-calendars/{semester_code} [get]
+// @Router /v1/config/semester-calendars/{semester_code} [get]
 func (h *Handler) GetSemesterCalendarDetail(c *gin.Context) {
 	code := c.Param("semester_code")
 	if code == "" {
@@ -115,7 +115,7 @@ func (h *Handler) GetSemesterCalendarDetail(c *gin.Context) {
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/semester-calendars [get]
+// @Router /v1/admin/semester-calendars [get]
 func (h *Handler) GetAdminSemesterCalendars(c *gin.Context) {
 	entities, err := h.service.List(c.Request.Context())
 	if err != nil {
@@ -145,7 +145,7 @@ func (h *Handler) GetAdminSemesterCalendars(c *gin.Context) {
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/semester-calendars/{semester_code} [get]
+// @Router /v1/admin/semester-calendars/{semester_code} [get]
 func (h *Handler) GetAdminSemesterCalendar(c *gin.Context) {
 	entity, ok := h.get(c)
 	if !ok {
@@ -168,7 +168,7 @@ func (h *Handler) GetAdminSemesterCalendar(c *gin.Context) {
 // @Failure 409 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/semester-calendars [post]
+// @Router /v1/admin/semester-calendars [post]
 func (h *Handler) CreateSemesterCalendar(c *gin.Context) {
 	input, ok := bindUpsert(c)
 	if !ok {
@@ -197,7 +197,7 @@ func (h *Handler) CreateSemesterCalendar(c *gin.Context) {
 // @Failure 409 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/semester-calendars/{semester_code} [put]
+// @Router /v1/admin/semester-calendars/{semester_code} [put]
 func (h *Handler) UpdateSemesterCalendar(c *gin.Context) {
 	code := c.Param("semester_code")
 	input, ok := bindUpsert(c)
@@ -223,7 +223,7 @@ func (h *Handler) UpdateSemesterCalendar(c *gin.Context) {
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/semester-calendars/{semester_code} [delete]
+// @Router /v1/admin/semester-calendars/{semester_code} [delete]
 func (h *Handler) DeleteSemesterCalendar(c *gin.Context) {
 	code := c.Param("semester_code")
 	if !h.handleError(c, h.service.Delete(c.Request.Context(), code), "删除校历失败", "未找到该校历") {

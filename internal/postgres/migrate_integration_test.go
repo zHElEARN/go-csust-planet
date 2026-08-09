@@ -30,28 +30,31 @@ var uniqueAppVersionMigrationSQL string
 //go:embed migrations/00003_announcement_platform.sql
 var announcementPlatformMigrationSQL string
 
+//go:embed migrations/00004_split_app_versions.sql
+var splitAppVersionsMigrationSQL string
+
 func TestMigratePreservesBusinessDataAndIsIdempotent(t *testing.T) {
 	db := openTestDB(t)
+
+	version, err := internalpostgres.Migrate(context.Background(), db)
+	if err != nil {
+		t.Fatalf("fresh database migration failed: %v", err)
+	}
+	if version != 4 {
+		t.Fatalf("fresh database migration returned version %d, want 4", version)
+	}
 
 	var tableCount int64
 	if err := db.Raw(`
 		SELECT count(*)
 		FROM information_schema.tables
 		WHERE table_schema = 'public'
-		  AND table_name IN ('announcements', 'app_versions', 'campus_map_features', 'semester_calendars')
+		  AND table_name IN ('announcements', 'legacy_app_versions', 'app_versions', 'campus_map_features', 'semester_calendars')
 	`).Scan(&tableCount).Error; err != nil {
 		t.Fatalf("failed to count business tables: %v", err)
 	}
-	if tableCount == 0 {
-		version, err := internalpostgres.Migrate(context.Background(), db)
-		if err != nil {
-			t.Fatalf("fresh database migration failed: %v", err)
-		}
-		if version != 3 {
-			t.Fatalf("fresh database migration returned version %d, want 3", version)
-		}
-	} else if tableCount != 4 {
-		t.Fatalf("test database has %d of 4 business tables", tableCount)
+	if tableCount != 5 {
+		t.Fatalf("test database has %d of 5 business tables", tableCount)
 	}
 
 	before := readFingerprints(t, db)
@@ -60,13 +63,105 @@ func TestMigratePreservesBusinessDataAndIsIdempotent(t *testing.T) {
 		if err != nil {
 			t.Fatalf("migration run %d failed: %v", run, err)
 		}
-		if version != 3 {
-			t.Fatalf("migration run %d returned version %d, want 3", run, version)
+		if version != 4 {
+			t.Fatalf("migration run %d returned version %d, want 4", run, version)
 		}
 	}
 	after := readFingerprints(t, db)
 	if !reflect.DeepEqual(before, after) {
 		t.Fatalf("business data changed during migration: before=%v after=%v", before, after)
+	}
+}
+
+func TestAppVersionSplitMigrationPreservesLegacyAndCreatesEmptyCurrent(t *testing.T) {
+	db := openTestDB(t)
+	if _, err := internalpostgres.Migrate(context.Background(), db); err != nil {
+		t.Fatalf("prepare migrated database: %v", err)
+	}
+
+	tx := db.Begin()
+	if tx.Error != nil {
+		t.Fatalf("failed to begin app version split transaction: %v", tx.Error)
+	}
+	t.Cleanup(func() { _ = tx.Rollback().Error })
+
+	if err := tx.Exec("DROP TABLE public.app_versions").Error; err != nil {
+		t.Fatalf("failed to remove current app version fixture table: %v", err)
+	}
+	if err := tx.Exec("ALTER TABLE public.legacy_app_versions RENAME TO app_versions").Error; err != nil {
+		t.Fatalf("failed to restore v3 app version table name: %v", err)
+	}
+	if err := tx.Exec("ALTER TABLE public.app_versions RENAME CONSTRAINT legacy_app_versions_pkey TO app_versions_pkey").Error; err != nil {
+		t.Fatalf("failed to restore v3 app version primary key name: %v", err)
+	}
+	if err := tx.Exec("ALTER INDEX public.idx_legacy_platform_version RENAME TO idx_platform_version").Error; err != nil {
+		t.Fatalf("failed to restore v3 app version index name: %v", err)
+	}
+
+	legacyID := uuid.New()
+	if err := tx.Exec(`
+		INSERT INTO public.app_versions (
+			id, platform, version_code, version_name, is_force_update,
+			release_notes, download_url, created_at
+		) VALUES (?, 'android', 123456789, 'migration-ready', true, 'export data', 'https://example.com/legacy.apk', CURRENT_TIMESTAMP)
+	`, legacyID).Error; err != nil {
+		t.Fatalf("failed to create v3 app version fixture: %v", err)
+	}
+
+	var beforeCount int64
+	if err := tx.Table(appversion.TableName).Count(&beforeCount).Error; err != nil {
+		t.Fatalf("failed to count v3 app versions: %v", err)
+	}
+	if err := tx.Exec(splitAppVersionsMigrationSQL).Error; err != nil {
+		t.Fatalf("app version split migration failed: %v", err)
+	}
+
+	var legacyCount int64
+	if err := tx.Table(appversion.LegacyTableName).Count(&legacyCount).Error; err != nil {
+		t.Fatalf("failed to count migrated legacy app versions: %v", err)
+	}
+	if legacyCount != beforeCount {
+		t.Fatalf("legacy row count changed during split: got %d, want %d", legacyCount, beforeCount)
+	}
+
+	var migrated appversion.Entity
+	if err := tx.Table(appversion.LegacyTableName).First(&migrated, "id = ?", legacyID).Error; err != nil {
+		t.Fatalf("failed to read migrated legacy app version: %v", err)
+	}
+	if migrated.VersionName != "migration-ready" || !migrated.IsForceUpdate || migrated.DownloadURL != "https://example.com/legacy.apk" {
+		t.Fatalf("legacy app version changed during split: %+v", migrated)
+	}
+
+	var currentCount int64
+	if err := tx.Table(appversion.TableName).Count(&currentCount).Error; err != nil {
+		t.Fatalf("failed to count current app versions: %v", err)
+	}
+	if currentCount != 0 {
+		t.Fatalf("expected new app_versions table to be empty, got %d rows", currentCount)
+	}
+
+	for _, indexName := range []string{"idx_legacy_platform_version", "idx_platform_version"} {
+		var unique bool
+		if err := tx.Raw(`
+			SELECT i.indisunique
+			FROM pg_catalog.pg_index AS i
+			JOIN pg_catalog.pg_class AS c ON c.oid = i.indexrelid
+			JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
+			WHERE n.nspname = 'public' AND c.relname = ?
+		`, indexName).Scan(&unique).Error; err != nil {
+			t.Fatalf("failed to inspect %s: %v", indexName, err)
+		}
+		if !unique {
+			t.Fatalf("expected %s to be unique", indexName)
+		}
+	}
+
+	current := appversion.Entity{
+		Platform: "android", VersionCode: 123456789, VersionName: "new-package",
+		ReleaseNotes: "new package", DownloadURL: "https://example.com/current.apk",
+	}
+	if err := tx.Table(appversion.TableName).Create(&current).Error; err != nil {
+		t.Fatalf("same platform and version code should be allowed across tables: %v", err)
 	}
 }
 
@@ -278,6 +373,10 @@ func readFingerprints(t *testing.T, db *gorm.DB) []tableFingerprint {
 		SELECT 'app_versions', count(*),
 		       md5(COALESCE(string_agg(md5(row_to_json(t)::text), '' ORDER BY id), ''))
 		FROM public.app_versions AS t
+		UNION ALL
+		SELECT 'legacy_app_versions', count(*),
+		       md5(COALESCE(string_agg(md5(row_to_json(t)::text), '' ORDER BY id), ''))
+		FROM public.legacy_app_versions AS t
 		UNION ALL
 		SELECT 'campus_map_features', count(*),
 		       md5(COALESCE(string_agg(md5(row_to_json(t)::text), '' ORDER BY id), ''))

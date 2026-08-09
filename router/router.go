@@ -21,6 +21,7 @@ import (
 type Dependencies struct {
 	HealthHandler           *health.Handler
 	AnnouncementHandler     *announcement.Handler
+	LegacyAppVersionHandler *appversion.Handler
 	AppVersionHandler       *appversion.Handler
 	CampusMapHandler        *campusmap.Handler
 	SemesterCalendarHandler *semestercalendar.Handler
@@ -59,8 +60,8 @@ func SetupRouter(deps Dependencies) *gin.Engine {
 	{
 		configGroup.GET("/announcements", deps.AnnouncementHandler.GetAnnouncements)
 		configGroup.GET("/campus-map", deps.CampusMapHandler.GetCampusMap)
-		configGroup.GET("/app-versions", deps.AppVersionHandler.GetAppVersions)
-		configGroup.GET("/app-versions/check", deps.AppVersionHandler.CheckAppVersion)
+		configGroup.GET("/app-versions", deps.LegacyAppVersionHandler.GetAppVersions)
+		configGroup.GET("/app-versions/check", deps.LegacyAppVersionHandler.CheckAppVersion)
 		configGroup.GET("/semester-calendars", deps.SemesterCalendarHandler.GetSemesterCalendars)
 		configGroup.GET("/semester-calendars/:semester_code", deps.SemesterCalendarHandler.GetSemesterCalendarDetail)
 	}
@@ -74,17 +75,36 @@ func SetupRouter(deps Dependencies) *gin.Engine {
 		adminGroup.PUT("/announcements/:id", deps.AnnouncementHandler.UpdateAnnouncement)
 		adminGroup.DELETE("/announcements/:id", deps.AnnouncementHandler.DeleteAnnouncement)
 
-		adminGroup.GET("/app-versions", deps.AppVersionHandler.GetAdminAppVersions)
-		adminGroup.GET("/app-versions/:id", deps.AppVersionHandler.GetAdminAppVersion)
-		adminGroup.POST("/app-versions", deps.AppVersionHandler.CreateAppVersion)
-		adminGroup.PUT("/app-versions/:id", deps.AppVersionHandler.UpdateAppVersion)
-		adminGroup.DELETE("/app-versions/:id", deps.AppVersionHandler.DeleteAppVersion)
+		adminGroup.GET("/app-versions", deps.LegacyAppVersionHandler.GetAdminAppVersions)
+		adminGroup.GET("/app-versions/:id", deps.LegacyAppVersionHandler.GetAdminAppVersion)
+		adminGroup.POST("/app-versions", deps.LegacyAppVersionHandler.CreateAppVersion)
+		adminGroup.PUT("/app-versions/:id", deps.LegacyAppVersionHandler.UpdateAppVersion)
+		adminGroup.DELETE("/app-versions/:id", deps.LegacyAppVersionHandler.DeleteAppVersion)
 
 		adminGroup.GET("/semester-calendars", deps.SemesterCalendarHandler.GetAdminSemesterCalendars)
 		adminGroup.GET("/semester-calendars/:semester_code", deps.SemesterCalendarHandler.GetAdminSemesterCalendar)
 		adminGroup.POST("/semester-calendars", deps.SemesterCalendarHandler.CreateSemesterCalendar)
 		adminGroup.PUT("/semester-calendars/:semester_code", deps.SemesterCalendarHandler.UpdateSemesterCalendar)
 		adminGroup.DELETE("/semester-calendars/:semester_code", deps.SemesterCalendarHandler.DeleteSemesterCalendar)
+	}
+
+	v2 := r.Group("/v2")
+	v2.Use(requestTimeout(deps.BusinessRequestTimeout))
+
+	v2ConfigGroup := v2.Group("/config")
+	{
+		v2ConfigGroup.GET("/app-versions", deps.AppVersionHandler.GetAppVersions)
+		v2ConfigGroup.GET("/app-versions/check", deps.AppVersionHandler.CheckAppVersion)
+	}
+
+	v2AdminGroup := v2.Group("/admin")
+	v2AdminGroup.Use(middleware.AdminAuthMiddleware(deps.AdminBearerToken))
+	{
+		v2AdminGroup.GET("/app-versions", deps.AppVersionHandler.GetAdminAppVersions)
+		v2AdminGroup.GET("/app-versions/:id", deps.AppVersionHandler.GetAdminAppVersion)
+		v2AdminGroup.POST("/app-versions", deps.AppVersionHandler.CreateAppVersion)
+		v2AdminGroup.PUT("/app-versions/:id", deps.AppVersionHandler.UpdateAppVersion)
+		v2AdminGroup.DELETE("/app-versions/:id", deps.AppVersionHandler.DeleteAppVersion)
 	}
 
 	mountAdminFrontend(r, deps.AppMode)

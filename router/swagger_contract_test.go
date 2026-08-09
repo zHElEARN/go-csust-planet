@@ -43,27 +43,34 @@ type swaggerDefinition struct {
 
 func TestSwaggerPreservesExistingHTTPContract(t *testing.T) {
 	expected := map[string][]string{
-		"GET /admin/announcements":                         {"200", "401", "500", "503"},
-		"POST /admin/announcements":                        {"201", "400", "401", "500", "503"},
-		"GET /admin/announcements/{id}":                    {"200", "400", "401", "404", "500", "503"},
-		"PUT /admin/announcements/{id}":                    {"200", "400", "401", "404", "500", "503"},
-		"DELETE /admin/announcements/{id}":                 {"204", "400", "401", "404", "500", "503"},
-		"GET /admin/app-versions":                          {"200", "401", "500", "503"},
-		"POST /admin/app-versions":                         {"201", "400", "401", "409", "500", "503"},
-		"GET /admin/app-versions/{id}":                     {"200", "400", "401", "404", "500", "503"},
-		"PUT /admin/app-versions/{id}":                     {"200", "400", "401", "404", "409", "500", "503"},
-		"DELETE /admin/app-versions/{id}":                  {"204", "400", "401", "404", "500", "503"},
-		"GET /admin/semester-calendars":                    {"200", "401", "500", "503"},
-		"POST /admin/semester-calendars":                   {"201", "400", "401", "409", "500", "503"},
-		"GET /admin/semester-calendars/{semester_code}":    {"200", "401", "404", "500", "503"},
-		"PUT /admin/semester-calendars/{semester_code}":    {"200", "400", "401", "404", "409", "500", "503"},
-		"DELETE /admin/semester-calendars/{semester_code}": {"204", "401", "404", "500", "503"},
-		"GET /config/announcements":                        {"200", "400", "500", "503"},
-		"GET /config/app-versions":                         {"200", "400", "500", "503"},
-		"GET /config/app-versions/check":                   {"200", "400", "500", "503"},
-		"GET /config/campus-map":                           {"200", "500", "503"},
-		"GET /config/semester-calendars":                   {"200", "500", "503"},
-		"GET /config/semester-calendars/{semester_code}":   {"200", "400", "404", "503"},
+		"GET /v1/admin/announcements":                         {"200", "401", "500", "503"},
+		"POST /v1/admin/announcements":                        {"201", "400", "401", "500", "503"},
+		"GET /v1/admin/announcements/{id}":                    {"200", "400", "401", "404", "500", "503"},
+		"PUT /v1/admin/announcements/{id}":                    {"200", "400", "401", "404", "500", "503"},
+		"DELETE /v1/admin/announcements/{id}":                 {"204", "400", "401", "404", "500", "503"},
+		"GET /v1/admin/app-versions":                          {"200", "401", "500", "503"},
+		"POST /v1/admin/app-versions":                         {"201", "400", "401", "409", "500", "503"},
+		"GET /v1/admin/app-versions/{id}":                     {"200", "400", "401", "404", "500", "503"},
+		"PUT /v1/admin/app-versions/{id}":                     {"200", "400", "401", "404", "409", "500", "503"},
+		"DELETE /v1/admin/app-versions/{id}":                  {"204", "400", "401", "404", "500", "503"},
+		"GET /v1/admin/semester-calendars":                    {"200", "401", "500", "503"},
+		"POST /v1/admin/semester-calendars":                   {"201", "400", "401", "409", "500", "503"},
+		"GET /v1/admin/semester-calendars/{semester_code}":    {"200", "401", "404", "500", "503"},
+		"PUT /v1/admin/semester-calendars/{semester_code}":    {"200", "400", "401", "404", "409", "500", "503"},
+		"DELETE /v1/admin/semester-calendars/{semester_code}": {"204", "401", "404", "500", "503"},
+		"GET /v1/config/announcements":                        {"200", "400", "500", "503"},
+		"GET /v1/config/app-versions":                         {"200", "400", "500", "503"},
+		"GET /v1/config/app-versions/check":                   {"200", "400", "500", "503"},
+		"GET /v1/config/campus-map":                           {"200", "500", "503"},
+		"GET /v1/config/semester-calendars":                   {"200", "500", "503"},
+		"GET /v1/config/semester-calendars/{semester_code}":   {"200", "400", "404", "503"},
+		"GET /v2/admin/app-versions":                          {"200", "401", "500", "503"},
+		"POST /v2/admin/app-versions":                         {"201", "400", "401", "409", "500", "503"},
+		"GET /v2/admin/app-versions/{id}":                     {"200", "400", "401", "404", "500", "503"},
+		"PUT /v2/admin/app-versions/{id}":                     {"200", "400", "401", "404", "409", "500", "503"},
+		"DELETE /v2/admin/app-versions/{id}":                  {"204", "400", "401", "404", "500", "503"},
+		"GET /v2/config/app-versions":                         {"200", "400", "500", "503"},
+		"GET /v2/config/app-versions/check":                   {"200", "400", "500", "503"},
 	}
 
 	var document swaggerDocument
@@ -92,7 +99,7 @@ func TestSwaggerPreservesExistingHTTPContract(t *testing.T) {
 		t.Fatal("expected announcement upsert request to require platform")
 	}
 
-	publicOperation := document.Paths["/config/announcements"]["get"]
+	publicOperation := document.Paths["/v1/config/announcements"]["get"]
 	if len(publicOperation.Parameters) != 1 {
 		t.Fatalf("expected one public announcement parameter, got %+v", publicOperation.Parameters)
 	}

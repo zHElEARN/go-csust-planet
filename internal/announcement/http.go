@@ -52,7 +52,7 @@ func NewHandler(service *Service) *Handler { return &Handler{service: service} }
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /config/announcements [get]
+// @Router /v1/config/announcements [get]
 func (h *Handler) GetAnnouncements(c *gin.Context) {
 	platform, ok := bindPublicPlatform(c)
 	if !ok {
@@ -84,7 +84,7 @@ func (h *Handler) GetAnnouncements(c *gin.Context) {
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/announcements [get]
+// @Router /v1/admin/announcements [get]
 func (h *Handler) GetAdminAnnouncements(c *gin.Context) {
 	entities, err := h.service.List(c.Request.Context())
 	if err != nil {
@@ -115,7 +115,7 @@ func (h *Handler) GetAdminAnnouncements(c *gin.Context) {
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/announcements/{id} [get]
+// @Router /v1/admin/announcements/{id} [get]
 func (h *Handler) GetAdminAnnouncement(c *gin.Context) {
 	entity, ok := h.get(c)
 	if !ok {
@@ -137,7 +137,7 @@ func (h *Handler) GetAdminAnnouncement(c *gin.Context) {
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/announcements [post]
+// @Router /v1/admin/announcements [post]
 func (h *Handler) CreateAnnouncement(c *gin.Context) {
 	input, ok := bindUpsert(c)
 	if !ok {
@@ -170,7 +170,7 @@ func (h *Handler) CreateAnnouncement(c *gin.Context) {
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/announcements/{id} [put]
+// @Router /v1/admin/announcements/{id} [put]
 func (h *Handler) UpdateAnnouncement(c *gin.Context) {
 	id, ok := parseID(c)
 	if !ok {
@@ -200,7 +200,7 @@ func (h *Handler) UpdateAnnouncement(c *gin.Context) {
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Failure 503 {object} response.ErrorResponse
-// @Router /admin/announcements/{id} [delete]
+// @Router /v1/admin/announcements/{id} [delete]
 func (h *Handler) DeleteAnnouncement(c *gin.Context) {
 	id, ok := parseID(c)
 	if !ok {

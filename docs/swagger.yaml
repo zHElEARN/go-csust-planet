@@ -1,4 +1,4 @@
-basePath: /v1
+basePath: /
 definitions:
   announcement.adminAnnouncementResponse:
     properties:
@@ -288,7 +288,7 @@ info:
   title: go-csust-planet API
   version: "1.0"
 paths:
-  /admin/announcements:
+  /v1/admin/announcements:
     get:
       description: 获取全部公告列表，按创建时间倒序排列
       parameters:
@@ -363,7 +363,7 @@ paths:
       summary: 创建公告
       tags:
       - admin
-  /admin/announcements/{id}:
+  /v1/admin/announcements/{id}:
     delete:
       description: 根据公告ID删除后台公告
       parameters:
@@ -499,7 +499,7 @@ paths:
       summary: 更新公告
       tags:
       - admin
-  /admin/app-versions:
+  /v1/admin/app-versions:
     get:
       description: 获取全部 App 版本列表，按平台升序、版本号降序排列
       parameters:
@@ -578,7 +578,7 @@ paths:
       summary: 创建 App 版本
       tags:
       - admin
-  /admin/app-versions/{id}:
+  /v1/admin/app-versions/{id}:
     delete:
       description: 根据版本ID删除 App 版本
       parameters:
@@ -718,7 +718,7 @@ paths:
       summary: 更新 App 版本
       tags:
       - admin
-  /admin/semester-calendars:
+  /v1/admin/semester-calendars:
     get:
       description: 获取全部校历列表，按学期代码倒序排列
       parameters:
@@ -797,7 +797,7 @@ paths:
       summary: 创建校历
       tags:
       - admin
-  /admin/semester-calendars/{semester_code}:
+  /v1/admin/semester-calendars/{semester_code}:
     delete:
       description: 根据学期代码删除后台校历
       parameters:
@@ -929,7 +929,7 @@ paths:
       summary: 更新校历
       tags:
       - admin
-  /config/announcements:
+  /v1/config/announcements:
     get:
       description: 获取当前生效的公告列表，按创建时间倒序排列
       parameters:
@@ -965,7 +965,7 @@ paths:
       summary: 获取公告列表
       tags:
       - config
-  /config/app-versions:
+  /v1/config/app-versions:
     get:
       description: 获取指定平台的所有App版本历史
       parameters:
@@ -1001,7 +1001,7 @@ paths:
       summary: 获取App所有版本
       tags:
       - config
-  /config/app-versions/check:
+  /v1/config/app-versions/check:
     get:
       description: 检查指定平台的App是否有更新
       parameters:
@@ -1040,7 +1040,7 @@ paths:
       summary: 检查App版本更新
       tags:
       - config
-  /config/campus-map:
+  /v1/config/campus-map:
     get:
       description: 获取GeoJSON格式的校园地图数据
       produces:
@@ -1061,7 +1061,7 @@ paths:
       summary: 获取校园地图数据
       tags:
       - config
-  /config/semester-calendars:
+  /v1/config/semester-calendars:
     get:
       description: 获取所有校历的列表，按学期代码倒序排列
       produces:
@@ -1084,7 +1084,7 @@ paths:
       summary: 获取校历列表
       tags:
       - config
-  /config/semester-calendars/{semester_code}:
+  /v1/config/semester-calendars/{semester_code}:
     get:
       description: 根据学期代码获取该学期的详细校历信息
       parameters:
@@ -1113,6 +1113,300 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: 获取校历详情
+      tags:
+      - config
+  /v2/admin/app-versions:
+    get:
+      description: 获取全部 App 版本列表，按平台升序、版本号降序排列
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/appversion.adminResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: 获取后台 App 版本列表
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      description: 创建一条新的 App 版本记录
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 版本信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/appversion.upsertRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/appversion.adminResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: 创建 App 版本
+      tags:
+      - admin
+  /v2/admin/app-versions/{id}:
+    delete:
+      description: 根据版本ID删除 App 版本
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 版本ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: 删除 App 版本
+      tags:
+      - admin
+    get:
+      description: 根据版本ID获取后台 App 版本详情
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 版本ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/appversion.adminResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: 获取后台 App 版本详情
+      tags:
+      - admin
+    put:
+      consumes:
+      - application/json
+      description: 根据版本ID更新 App 版本信息
+      parameters:
+      - description: Bearer admin token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 版本ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 版本信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/appversion.upsertRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/appversion.adminResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: 更新 App 版本
+      tags:
+      - admin
+  /v2/config/app-versions:
+    get:
+      description: 获取指定平台的所有App版本历史
+      parameters:
+      - description: 平台(ios或android)
+        enum:
+        - ios
+        - android
+        in: query
+        name: platform
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/appversion.publicResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: 获取App所有版本
+      tags:
+      - config
+  /v2/config/app-versions/check:
+    get:
+      description: 检查指定平台的App是否有更新
+      parameters:
+      - description: 平台(ios或android)
+        enum:
+        - ios
+        - android
+        in: query
+        name: platform
+        required: true
+        type: string
+      - description: 当前版本号
+        in: query
+        name: currentVersionCode
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/appversion.checkResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: 检查App版本更新
       tags:
       - config
 swagger: "2.0"

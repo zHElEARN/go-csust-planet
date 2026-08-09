@@ -48,6 +48,7 @@ func newAdminTestRouterWithCleanup(t *testing.T, useTransaction bool) (*gin.Engi
 	return SetupRouter(Dependencies{
 		HealthHandler:           health.NewHandler(testDB),
 		AnnouncementHandler:     announcement.NewHandler(announcement.NewService(announcement.NewPostgresRepository(testDB))),
+		LegacyAppVersionHandler: appversion.NewHandler(appversion.NewService(appversion.NewLegacyPostgresRepository(testDB))),
 		AppVersionHandler:       appversion.NewHandler(appversion.NewService(appversion.NewPostgresRepository(testDB))),
 		CampusMapHandler:        campusmap.NewHandler(campusmap.NewService(campusmap.NewPostgresRepository(testDB))),
 		SemesterCalendarHandler: semestercalendar.NewHandler(semestercalendar.NewService(semestercalendar.NewPostgresRepository(testDB))),
@@ -62,7 +63,7 @@ func resetRouterTestTables(t *testing.T, db *gorm.DB) {
 	t.Helper()
 
 	if err := db.Exec(
-		"TRUNCATE TABLE announcements, app_versions, semester_calendars, campus_map_features RESTART IDENTITY CASCADE",
+		"TRUNCATE TABLE announcements, legacy_app_versions, app_versions, semester_calendars, campus_map_features RESTART IDENTITY CASCADE",
 	).Error; err != nil {
 		t.Fatalf("failed to reset router test tables: %v", err)
 	}

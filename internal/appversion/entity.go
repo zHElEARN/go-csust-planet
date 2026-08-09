@@ -6,6 +6,11 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	TableName       = "app_versions"
+	LegacyTableName = "legacy_app_versions"
+)
+
 type Entity struct {
 	ID            uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	Platform      string    `gorm:"type:varchar;not null;uniqueIndex:idx_platform_version,priority:1;comment:平台(ios或android)"`
@@ -17,4 +22,4 @@ type Entity struct {
 	CreatedAt     time.Time `gorm:"type:timestamptz;not null;default:CURRENT_TIMESTAMP"`
 }
 
-func (Entity) TableName() string { return "app_versions" }
+func (Entity) TableName() string { return TableName }

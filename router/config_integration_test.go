@@ -484,7 +484,7 @@ func createTestCampusMapFeature(t *testing.T, feature campusmap.Entity) campusma
 func createTestAppVersion(t *testing.T, version appversion.Entity) appversion.Entity {
 	t.Helper()
 
-	if err := activeTestDB.Create(&version).Error; err != nil {
+	if err := activeTestDB.Table(appversion.LegacyTableName).Create(&version).Error; err != nil {
 		t.Fatalf("failed to create test app version: %v", err)
 	}
 

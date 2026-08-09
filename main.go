@@ -18,7 +18,7 @@ import (
 // @version         1.0
 // @description     go-csust-planet 项目的 API 接口文档
 // @host            localhost:8080
-// @BasePath        /v1
+// @BasePath        /
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
@@ -35,6 +35,7 @@ func main() {
 	log.Printf("[INFO] PostgreSQL 数据库连接成功，当前迁移版本: %d", migrationVersion)
 
 	announcementHandler := announcement.NewHandler(announcement.NewService(announcement.NewPostgresRepository(db)))
+	legacyAppVersionHandler := appversion.NewHandler(appversion.NewService(appversion.NewLegacyPostgresRepository(db)))
 	appVersionHandler := appversion.NewHandler(appversion.NewService(appversion.NewPostgresRepository(db)))
 	campusMapHandler := campusmap.NewHandler(campusmap.NewService(campusmap.NewPostgresRepository(db)))
 	semesterCalendarHandler := semestercalendar.NewHandler(semestercalendar.NewService(semestercalendar.NewPostgresRepository(db)))
@@ -42,6 +43,7 @@ func main() {
 	r := router.SetupRouter(router.Dependencies{
 		HealthHandler:           health.NewHandler(db),
 		AnnouncementHandler:     announcementHandler,
+		LegacyAppVersionHandler: legacyAppVersionHandler,
 		AppVersionHandler:       appVersionHandler,
 		CampusMapHandler:        campusMapHandler,
 		SemesterCalendarHandler: semesterCalendarHandler,
