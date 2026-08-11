@@ -1,6 +1,7 @@
 package router
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,35 @@ import (
 	"github.com/zHElEARN/go-csust-planet/middleware"
 	"github.com/zHElEARN/go-csust-planet/utils/response"
 )
+
+type accessLogEntry struct {
+	Time     string `json:"time"`
+	Status   int    `json:"status"`
+	Latency  string `json:"latency"`
+	ClientIP string `json:"client_ip"`
+	Method   string `json:"method"`
+	Path     string `json:"path"`
+	UA       string `json:"ua"`
+	BodySize int    `json:"body_size"`
+}
+
+func jsonLogFormatter(param gin.LogFormatterParams) string {
+	entry := accessLogEntry{
+		Time:     param.TimeStamp.Format(time.RFC3339),
+		Status:   param.StatusCode,
+		Latency:  param.Latency.String(),
+		ClientIP: param.ClientIP,
+		Method:   param.Method,
+		Path:     param.Path,
+		UA:       param.Request.UserAgent(),
+		BodySize: param.BodySize,
+	}
+	b, err := json.Marshal(entry)
+	if err != nil {
+		return ""
+	}
+	return string(b) + "\n"
+}
 
 type Dependencies struct {
 	HealthHandler           *health.Handler
@@ -41,6 +71,7 @@ func SetupRouter(deps Dependencies) *gin.Engine {
 
 	r := gin.New()
 	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+		Formatter: jsonLogFormatter,
 		SkipPaths: []string{"/healthz"},
 	}))
 	r.Use(gin.Recovery())
