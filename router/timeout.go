@@ -11,10 +11,19 @@ import (
 )
 
 func requestTimeout(duration time.Duration) gin.HandlerFunc {
-	return timeout.New(
+	timeoutMiddleware := timeout.New(
 		timeout.WithTimeout(duration),
 		timeout.WithResponse(func(c *gin.Context) {
 			response.ResponseError(c, http.StatusServiceUnavailable, "请求处理超时")
 		}),
 	)
+
+	return func(c *gin.Context) {
+		writer := c.Writer
+		defer func() {
+			c.Writer = writer
+		}()
+
+		timeoutMiddleware(c)
+	}
 }

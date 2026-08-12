@@ -64,6 +64,11 @@ func TestRequestTimeoutReturnsServiceUnavailable(t *testing.T) {
 func TestRequestTimeoutPreservesSuccessfulResponseAndSetsDeadline(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
+	responseSize := -1
+	r.Use(func(c *gin.Context) {
+		c.Next()
+		responseSize = c.Writer.Size()
+	})
 	r.Use(requestTimeout(time.Second))
 	r.GET("/fast", func(c *gin.Context) {
 		if _, ok := c.Request.Context().Deadline(); !ok {
@@ -78,6 +83,9 @@ func TestRequestTimeoutPreservesSuccessfulResponseAndSetsDeadline(t *testing.T) 
 
 	if resp.Code != http.StatusAccepted || resp.Body.String() != `{"status":"ok"}` {
 		t.Fatalf("unexpected successful response: status=%d body=%q", resp.Code, resp.Body.String())
+	}
+	if responseSize != resp.Body.Len() {
+		t.Fatalf("unexpected response size: got %d, want %d", responseSize, resp.Body.Len())
 	}
 }
 
