@@ -14,7 +14,8 @@ func corsMiddleware(origins []string) gin.HandlerFunc {
 	}
 
 	return func(c *gin.Context) {
-		if !strings.HasPrefix(c.Request.URL.Path, "/v1") {
+		path := c.Request.URL.Path
+		if !strings.HasPrefix(path, "/v1") && !strings.HasPrefix(path, "/v2") {
 			c.Next()
 			return
 		}
