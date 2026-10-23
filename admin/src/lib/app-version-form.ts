@@ -1,7 +1,7 @@
 import type { AdminAppVersion, AdminAppVersionUpsertRequest } from '$lib/admin-api';
 
 export type AppVersionFormState = {
-	platform: 'ios' | 'android';
+	platform: 'ios' | 'android' | 'macos';
 	versionCode: string | number | undefined;
 	versionName: string;
 	isForceUpdate: boolean;

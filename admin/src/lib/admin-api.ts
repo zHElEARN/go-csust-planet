@@ -23,7 +23,7 @@ export type AdminAnnouncementUpsertRequest = {
 
 export type AdminAppVersion = {
 	id: string;
-	platform: 'ios' | 'android';
+	platform: 'ios' | 'android' | 'macos';
 	versionCode: number;
 	versionName: string;
 	isForceUpdate: boolean;
@@ -33,7 +33,7 @@ export type AdminAppVersion = {
 };
 
 export type AdminAppVersionUpsertRequest = {
-	platform: 'ios' | 'android';
+	platform: 'ios' | 'android' | 'macos';
 	versionCode: number;
 	versionName: string;
 	isForceUpdate: boolean;

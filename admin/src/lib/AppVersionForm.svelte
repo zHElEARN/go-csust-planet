@@ -40,6 +40,7 @@
 			>
 				<option value="ios">ios</option>
 				<option value="android">android</option>
+				<option value="macos">macos</option>
 			</select>
 		</div>
 

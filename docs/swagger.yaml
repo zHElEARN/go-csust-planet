@@ -108,6 +108,7 @@ definitions:
         enum:
         - ios
         - android
+        - macos
         type: string
       releaseNotes:
         type: string
@@ -969,10 +970,11 @@ paths:
     get:
       description: 获取指定平台的所有App版本历史
       parameters:
-      - description: 平台(ios或android)
+      - description: 平台(ios、android或macos)
         enum:
         - ios
         - android
+        - macos
         in: query
         name: platform
         required: true
@@ -1005,10 +1007,11 @@ paths:
     get:
       description: 检查指定平台的App是否有更新
       parameters:
-      - description: 平台(ios或android)
+      - description: 平台(ios、android或macos)
         enum:
         - ios
         - android
+        - macos
         in: query
         name: platform
         required: true
@@ -1338,10 +1341,11 @@ paths:
     get:
       description: 获取指定平台的所有App版本历史
       parameters:
-      - description: 平台(ios或android)
+      - description: 平台(ios、android或macos)
         enum:
         - ios
         - android
+        - macos
         in: query
         name: platform
         required: true
@@ -1374,10 +1378,11 @@ paths:
     get:
       description: 检查指定平台的App是否有更新
       parameters:
-      - description: 平台(ios或android)
+      - description: 平台(ios、android或macos)
         enum:
         - ios
         - android
+        - macos
         in: query
         name: platform
         required: true
