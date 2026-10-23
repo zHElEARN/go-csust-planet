@@ -1,6 +1,6 @@
 # go-csust-planet
 
-这是 [长理星球](https://github.com/zHElEARN/CSUSTPlanet) 的配套后端项目，基于 Go 和 Svelte 开发，为移动端提供静态配置数据支持。
+这是 [云岭星球](https://github.com/zHElEARN/CSUSTPlanet) 的配套后端项目，基于 Go 和 Svelte 开发，为移动端提供静态配置数据支持。
 
 ## 功能特性
 
@@ -80,7 +80,7 @@
 
 ## 部署
 
-配套长理星球应用时，需要同时维护 Debug 和 Release 的后端，参见示例 [docker-compose.yml](docker-compose.yml) 和 [scripts/deploy-remote.sh](scripts/deploy-remote.sh) 文件。
+配套云岭星球应用时，需要同时维护 Debug 和 Release 的后端，参见示例 [docker-compose.yml](docker-compose.yml) 和 [scripts/deploy-remote.sh](scripts/deploy-remote.sh) 文件。
 
 ## 许可证
 

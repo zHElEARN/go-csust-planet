@@ -44,7 +44,9 @@ go test -p 1 ./...
 
 测试命令必须在项目根目录运行。
 
-如果本机没有可用 PostgreSQL 测试库，先说明阻塞原因；不要跳过 `go test -p 1 ./...`。
+运行测试前，检查 `.env` 或当前终端环境中是否有完整的 `TEST_DB_HOST`、`TEST_DB_PORT`、`TEST_DB_USER`、`TEST_DB_PASSWORD`、`TEST_DB_NAME`。如果没有，直接使用 `docker-compose.test.yml` 启动 PostgreSQL 测试容器并等待其可用，再按该文件中的连接信息设置测试环境变量并运行测试。
+
+仅当测试容器由本次验证启动时，测试结束后停止该容器。如果 Docker 不可用、容器启动失败或因其他原因无法完成实际数据库测试，仍需运行 `go test -p 1 ./...`，并在最终回复中明确说明数据库测试未实际完成及具体原因；不得把数据库测试被跳过视为验证完成。
 
 如果只影响 admin 且项目没有 admin 专用测试命令，不需要额外运行后端测试；完成 `pnpm lint`、`pnpm check`、`pnpm build` 即可。
 
