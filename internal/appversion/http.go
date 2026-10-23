@@ -15,14 +15,14 @@ import (
 type Handler struct{ service *Service }
 
 type listRequest struct {
-	Platform string `form:"platform" binding:"required,oneof=ios android"`
+	Platform string `form:"platform" binding:"required,oneof=ios android macos"`
 }
 type checkRequest struct {
-	Platform           string `form:"platform" binding:"required,oneof=ios android"`
+	Platform           string `form:"platform" binding:"required,oneof=ios android macos"`
 	CurrentVersionCode int    `form:"currentVersionCode" binding:"required"`
 }
 type upsertRequest struct {
-	Platform      string `json:"platform" binding:"required,oneof=ios android"`
+	Platform      string `json:"platform" binding:"required,oneof=ios android macos"`
 	VersionCode   *int   `json:"versionCode" binding:"required"`
 	VersionName   string `json:"versionName" binding:"required"`
 	IsForceUpdate *bool  `json:"isForceUpdate" binding:"required"`
@@ -61,7 +61,7 @@ func NewHandler(service *Service) *Handler { return &Handler{service: service} }
 // @Description 获取指定平台的所有App版本历史
 // @Tags config
 // @Produce json
-// @Param platform query string true "平台(ios或android)" Enums(ios, android)
+// @Param platform query string true "平台(ios、android或macos)" Enums(ios, android, macos)
 // @Success 200 {array} publicResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
@@ -95,7 +95,7 @@ func (h *Handler) GetAppVersions(c *gin.Context) {
 // @Description 检查指定平台的App是否有更新
 // @Tags config
 // @Produce json
-// @Param platform query string true "平台(ios或android)" Enums(ios, android)
+// @Param platform query string true "平台(ios、android或macos)" Enums(ios, android, macos)
 // @Param currentVersionCode query int true "当前版本号"
 // @Success 200 {object} checkResponse
 // @Failure 400 {object} response.ErrorResponse

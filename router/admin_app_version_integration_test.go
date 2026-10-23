@@ -292,3 +292,74 @@ func TestAdminAppVersionCreateIsConcurrencySafe(t *testing.T) {
 		t.Fatalf("expected exactly one app version row after concurrent create, got %d", count)
 	}
 }
+
+func TestAppVersionMacOSIsIndependentFromIOS(t *testing.T) {
+	r := newAdminTestRouter(t)
+	adminPath := "/v2/admin/app-versions"
+	configPath := "/v2/config/app-versions"
+
+	resp := performRequest(t, r, http.MethodPost, adminPath, map[string]any{
+		"platform":      "ios",
+		"versionCode":   100,
+		"versionName":   "1.0.0",
+		"isForceUpdate": false,
+		"releaseNotes":  "ios release",
+		"downloadUrl":   "https://example.com/ios-100",
+	}, testAdminToken)
+	assertStatus(t, resp, http.StatusCreated)
+
+	resp = performRequest(t, r, http.MethodPost, adminPath, map[string]any{
+		"platform":      "macos",
+		"versionCode":   100,
+		"versionName":   "1.0.0",
+		"isForceUpdate": false,
+		"releaseNotes":  "macos release",
+		"downloadUrl":   "https://example.com/macos-100",
+	}, testAdminToken)
+	assertStatus(t, resp, http.StatusCreated)
+
+	resp = performRequest(t, r, http.MethodPost, adminPath, map[string]any{
+		"platform":      "macos",
+		"versionCode":   101,
+		"versionName":   "1.0.1",
+		"isForceUpdate": false,
+		"releaseNotes":  "macos next release",
+		"downloadUrl":   "https://example.com/macos-101",
+	}, testAdminToken)
+	assertStatus(t, resp, http.StatusCreated)
+
+	resp = performRequest(t, r, http.MethodGet, configPath+"?platform=macos", nil, "")
+	assertStatus(t, resp, http.StatusOK)
+	var macOSVersions []AppVersionResponse
+	decodeJSONResponse(t, resp, &macOSVersions)
+	if len(macOSVersions) != 2 || macOSVersions[0].VersionCode != 101 || macOSVersions[1].VersionCode != 100 {
+		t.Fatalf("unexpected macos version list: %+v", macOSVersions)
+	}
+
+	resp = performRequest(t, r, http.MethodGet, configPath+"?platform=ios", nil, "")
+	assertStatus(t, resp, http.StatusOK)
+	var iosVersions []AppVersionResponse
+	decodeJSONResponse(t, resp, &iosVersions)
+	if len(iosVersions) != 1 || iosVersions[0].VersionCode != 100 {
+		t.Fatalf("unexpected ios version list: %+v", iosVersions)
+	}
+
+	resp = performRequest(t, r, http.MethodGet, configPath+"/check?platform=macos&currentVersionCode=100", nil, "")
+	assertStatus(t, resp, http.StatusOK)
+	var macOSCheck CheckAppVersionResponse
+	decodeJSONResponse(t, resp, &macOSCheck)
+	if !macOSCheck.HasUpdate || macOSCheck.LatestVersion == nil || macOSCheck.LatestVersion.VersionCode != 101 {
+		t.Fatalf("unexpected macos check response: %+v", macOSCheck)
+	}
+
+	resp = performRequest(t, r, http.MethodGet, configPath+"/check?platform=ios&currentVersionCode=100", nil, "")
+	assertStatus(t, resp, http.StatusOK)
+	var iosCheck CheckAppVersionResponse
+	decodeJSONResponse(t, resp, &iosCheck)
+	if iosCheck.HasUpdate || iosCheck.LatestVersion == nil || iosCheck.LatestVersion.VersionCode != 100 {
+		t.Fatalf("unexpected ios check response: %+v", iosCheck)
+	}
+
+	resp = performRequest(t, r, http.MethodGet, configPath+"/check?platform=windows&currentVersionCode=100", nil, "")
+	assertStatus(t, resp, http.StatusBadRequest)
+}

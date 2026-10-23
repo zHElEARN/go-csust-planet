@@ -1043,10 +1043,11 @@ const docTemplate = `{
                     {
                         "enum": [
                             "ios",
-                            "android"
+                            "android",
+                            "macos"
                         ],
                         "type": "string",
-                        "description": "平台(ios或android)",
+                        "description": "平台(ios、android或macos)",
                         "name": "platform",
                         "in": "query",
                         "required": true
@@ -1097,10 +1098,11 @@ const docTemplate = `{
                     {
                         "enum": [
                             "ios",
-                            "android"
+                            "android",
+                            "macos"
                         ],
                         "type": "string",
-                        "description": "平台(ios或android)",
+                        "description": "平台(ios、android或macos)",
                         "name": "platform",
                         "in": "query",
                         "required": true
@@ -1597,10 +1599,11 @@ const docTemplate = `{
                     {
                         "enum": [
                             "ios",
-                            "android"
+                            "android",
+                            "macos"
                         ],
                         "type": "string",
-                        "description": "平台(ios或android)",
+                        "description": "平台(ios、android或macos)",
                         "name": "platform",
                         "in": "query",
                         "required": true
@@ -1651,10 +1654,11 @@ const docTemplate = `{
                     {
                         "enum": [
                             "ios",
-                            "android"
+                            "android",
+                            "macos"
                         ],
                         "type": "string",
-                        "description": "平台(ios或android)",
+                        "description": "平台(ios、android或macos)",
                         "name": "platform",
                         "in": "query",
                         "required": true
@@ -1865,7 +1869,8 @@ const docTemplate = `{
                     "type": "string",
                     "enum": [
                         "ios",
-                        "android"
+                        "android",
+                        "macos"
                     ]
                 },
                 "releaseNotes": {
